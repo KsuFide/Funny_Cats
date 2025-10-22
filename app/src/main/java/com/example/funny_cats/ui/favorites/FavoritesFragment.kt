@@ -1,0 +1,35 @@
+package com.example.funny_cats.ui.favorites
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import com.example.funny_cats.databinding.FragmentFavoritesBinding
+
+class FavoritesFragment : Fragment() {
+
+    private var _binding: FragmentFavoritesBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+
+        binding.textFavorites.text = "Избранные котики\n\nЗдесь будут ваши любимые котики ❤️\n\n(Функциональность будет добавлена позже)"
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
