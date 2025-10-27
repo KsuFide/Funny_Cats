@@ -4,13 +4,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.databinding.ItemCatImageBinding
 
-class CatImageAdapter : ListAdapter<CatImage, CatImageAdapter.CatImageViewHolder>(DiffCallback) {
+class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImageViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -18,15 +16,18 @@ class CatImageAdapter : ListAdapter<CatImage, CatImageAdapter.CatImageViewHolder
     }
 
     override fun onBindViewHolder(holder: CatImageViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val catImage = getItem(position)
+        holder.bind(catImage)
     }
 
-    class CatImageViewHolder(private val binding: ItemCatImageBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(catImage: CatImage) {
-            Glide.with(binding.root)
-                .load(catImage.url)
-                .centerCrop()
-                .into(binding.imageView)
+    class CatImageViewHolder(private val binding: ItemCatImageBinding) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+        fun bind(catImage: CatImage?) {
+            catImage?.let {
+                Glide.with(binding.root)
+                    .load(it.url)
+                    .centerCrop()
+                    .into(binding.imageView)
+            }
         }
     }
 

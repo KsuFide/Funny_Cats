@@ -6,9 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.funny_cats.data.api.RetrofitInstance
-import com.example.funny_cats.data.model.CatBreed
+import com.example.funny_cats.data.local.model.CatBreed
+import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.databinding.FragmentBreedDetailBinding
 import com.example.funny_cats.ui.home.CatImageAdapter
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ class BreedDetailFragment : Fragment() {
 
     private var _binding: FragmentBreedDetailBinding? = null
     private val binding get() = _binding!!
-    private lateinit var adapter: CatImageAdapter
+    private lateinit var adapter: BreedImagesAdapter // Изменили тип адаптера
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentBreedDetailBinding.inflate(inflater, container, false)
@@ -34,7 +36,7 @@ class BreedDetailFragment : Fragment() {
     }
 
     private fun setupImageRecyclerView() {
-        adapter = CatImageAdapter()
+        adapter = BreedImagesAdapter() // Используем новый адаптер
         binding.recyclerViewBreedImages.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = this@BreedDetailFragment.adapter
@@ -79,7 +81,6 @@ class BreedDetailFragment : Fragment() {
             stringBuilder.appendLine()
         }
 
-        // Добавляем поля только если они есть
         breed.lifeSpan?.let {
             stringBuilder.appendLine("⏳ Продолжительность жизни: $it лет")
         }
@@ -107,10 +108,9 @@ class BreedDetailFragment : Fragment() {
     private fun loadBreedImages(breedId: String) {
         lifecycleScope.launch {
             try {
-                val images = RetrofitInstance.api.getBreedImages(breedId, limit = 8)
-                adapter.submitList(images)
+                val images: List<CatImage> = RetrofitInstance.api.getBreedImages(breedId, limit = 8)
+                adapter.submitList(images) // Теперь этот метод будет работать
             } catch (e: Exception) {
-                // Обработка ошибок
                 binding.textBreedDetail.append("\n\n❌ Не удалось загрузить изображения")
             }
         }

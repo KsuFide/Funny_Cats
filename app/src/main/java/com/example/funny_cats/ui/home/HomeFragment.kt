@@ -5,12 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.funny_cats.databinding.FragmentHomeBinding
-import dagger.hilt.android.AndroidEntryPoint
+import com.example.funny_cats.data.api.RetrofitInstance
 import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -20,7 +23,7 @@ class HomeFragment : Fragment() {
     private val TAG = "HomeFragment"
 
     private val viewModel: HomeViewModel by viewModels()
-    private lateinit var adapter: CatImageAdapter
+    private lateinit var adapter: HomePagingAdapter // Меняем на пагинационный адаптер
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,27 +38,62 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-        setupObservers()
+        setupPagingObservers() // Новая функция для пагинации
 
         binding.textHome.text = "🐱 Загружаем котиков..."
-        loadRandomCats()
+        loadRandomCatsWithPaging() // Новая функция для загрузки с пагинацией
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            loadRandomCats()
+            adapter.refresh() // Обновляем данные через адаптер
         }
     }
 
     private fun setupRecyclerView() {
-        adapter = CatImageAdapter()
+        adapter = HomePagingAdapter() // Используем пагинационный адаптер
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerView.adapter = adapter
     }
 
+    private fun setupPagingObservers() {
+        // Наблюдаем за состоянием загрузки
+        viewLifecycleOwner.lifecycleScope.launch {
+            adapter.loadStateFlow.collect { loadState ->
+                binding.swipeRefreshLayout.isRefreshing = loadState.refresh is androidx.paging.LoadState.Loading
+
+                when (loadState.refresh) {
+                    is androidx.paging.LoadState.Loading -> {
+                        binding.textHome.text = "🐱 Загружаем котиков..."
+                        binding.textHome.visibility = View.VISIBLE
+                        binding.recyclerView.visibility = View.GONE
+                    }
+                    is androidx.paging.LoadState.NotLoading -> {
+                        binding.textHome.visibility = View.GONE
+                        binding.recyclerView.visibility = View.VISIBLE
+                    }
+                    is androidx.paging.LoadState.Error -> {
+                        val errorState = loadState.refresh as androidx.paging.LoadState.Error
+                        binding.textHome.text = "😿 Не удалось загрузить котиков: ${errorState.error.message}"
+                        binding.textHome.visibility = View.VISIBLE
+                        binding.recyclerView.visibility = View.GONE
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadRandomCatsWithPaging() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.catsPagingFlow.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
+        }
+    }
+
+    // Оставляем старый метод для обратной совместимости (можно удалить позже)
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.catImages.collect { images ->
                 if (images.isNotEmpty()) {
-                    adapter.submitList(images)
                     binding.recyclerView.visibility = View.VISIBLE
                     binding.textHome.visibility = View.GONE
                 } else {
@@ -76,6 +114,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    // Оставляем старый метод для обратной совместимости (можно удалить позже)
     private fun loadRandomCats() {
         viewModel.loadRandomCats(limit = 10)
     }

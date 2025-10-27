@@ -2,36 +2,37 @@ package com.example.funny_cats.ui.breeds
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.funny_cats.R
-import com.example.funny_cats.data.model.CatBreed
+import com.example.funny_cats.data.local.model.CatBreed
 import com.example.funny_cats.databinding.ItemBreedBinding
 
 class BreedsAdapter(
     private val onItemClick: (CatBreed) -> Unit
-) : ListAdapter<CatBreed, BreedsAdapter.BreedsViewHolder>(DiffCallback) {
+) : PagingDataAdapter<CatBreed, BreedsAdapter.BreedsViewHolder>(DiffCallback) {
 
     inner class BreedsViewHolder(private val binding: ItemBreedBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(breed: CatBreed) {
-            with(binding) {
-                // Загрузка изображения с помощью Glide
-                Glide.with(imageViewBreed.context)
-                    .load(breed.getImageUrl())
-                    .placeholder(R.drawable.ic_cat_placeholder)
-                    .error(R.drawable.ic_cat_placeholder)
-                    .into(imageViewBreed)
+        fun bind(breed: CatBreed?) {
+            breed?.let { catBreed ->
+                with(binding) {
+                    // Загрузка изображения
+                    Glide.with(imageViewBreed.context)
+                        .load(catBreed.getImageUrl())
+                        .placeholder(R.drawable.ic_cat_placeholder)
+                        .error(R.drawable.ic_cat_placeholder)
+                        .into(imageViewBreed)
 
-                textViewBreedName.text = breed.name
-                textViewBreedOrigin.text = breed.origin ?: "Неизвестно"
-                textViewBreedTemperament.text = breed.temperament ?: "Не указан"
+                    textViewBreedName.text = catBreed.name
+                    textViewBreedOrigin.text = catBreed.origin ?: "Неизвестно"
+                    textViewBreedTemperament.text = catBreed.temperament ?: "Не указан"
 
-                root.setOnClickListener {
-                    onItemClick(breed)
+                    root.setOnClickListener {
+                        onItemClick(catBreed)
+                    }
                 }
             }
         }

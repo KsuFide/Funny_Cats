@@ -1,8 +1,7 @@
-package com.example.funny_cats.ui.home
+package com.example.funny_cats.ui.breeds
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -10,18 +9,18 @@ import com.bumptech.glide.Glide
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.databinding.ItemCatImageBinding
 
-class CatImageAdapter : ListAdapter<CatImage, CatImageAdapter.CatImageViewHolder>(DiffCallback) {
+class BreedImagesAdapter : ListAdapter<CatImage, BreedImagesAdapter.BreedImageViewHolder>(DiffCallback) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatImageViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BreedImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return CatImageViewHolder(binding)
+        return BreedImageViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: CatImageViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: BreedImageViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class CatImageViewHolder(private val binding: ItemCatImageBinding) : RecyclerView.ViewHolder(binding.root) {
+    class BreedImageViewHolder(private val binding: ItemCatImageBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(catImage: CatImage) {
             Glide.with(binding.root)
                 .load(catImage.url)

@@ -1,7 +1,7 @@
 package com.example.funny_cats.data.api
 
-import com.example.funny_cats.data.model.CatBreed
-import com.example.funny_cats.data.model.CatImage
+import com.example.funny_cats.data.local.model.CatBreed
+import com.example.funny_cats.data.local.model.CatImage
 import retrofit2.http.GET
 import retrofit2.http.Query
 

@@ -1,4 +1,4 @@
-package com.example.funny_cats.data.model
+package com.example.funny_cats.data.local.model
 
 import com.google.gson.annotations.SerializedName
 
