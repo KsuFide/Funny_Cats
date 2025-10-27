@@ -9,30 +9,38 @@ data class CatBreed(
     @SerializedName("name")
     val name: String,
 
-    @SerializedName("description")
-    val description: String,
-
-    @SerializedName("temperament")
-    val temperament: String,
+    @SerializedName("life_span")
+    val lifeSpan: String?,
 
     @SerializedName("origin")
-    val origin: String,
+    val origin: String?,
 
-    @SerializedName("life_span")
-    val lifeSpan: String,
+    @SerializedName("temperament")
+    val temperament: String?,
 
-    @SerializedName("adaptability")
-    val adaptability: Int,
-
-    @SerializedName("intelligence")
-    val intelligence: Int,
-
-    @SerializedName("dog_friendly")
-    val dogFriendly: Int,
+    @SerializedName("description")
+    val description: String?,
 
     @SerializedName("wikipedia_url")
     val wikipediaUrl: String?,
 
+    @SerializedName("intelligence")
+    val intelligence: Int?,
+
+    @SerializedName("dog_friendly")
+    val dogFriendly: Int?,
+
+    @SerializedName("adaptability")
+    val adaptability: Int?,
+
     @SerializedName("reference_image_id")
-    val referenceImageId: String?
-)
+    val imageId: String?
+) {
+    fun getImageUrl(): String {
+        return if (!imageId.isNullOrEmpty()) {
+            "https://cdn2.thecatapi.com/images/$imageId.jpg"
+        } else {
+            ""
+        }
+    }
+}

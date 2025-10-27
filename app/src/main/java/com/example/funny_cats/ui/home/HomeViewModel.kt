@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.model.CatImage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor() : ViewModel() {
 
     private val _catImages = MutableStateFlow<List<CatImage>>(emptyList())
     val catImages = _catImages.asStateFlow()
@@ -23,7 +26,6 @@ class HomeViewModel : ViewModel() {
                 val response = RetrofitInstance.api.getRandomCats(limit)
                 _catImages.value = response
             } catch (e: Exception) {
-                // Обработка ошибок
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false

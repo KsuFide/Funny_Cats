@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Funny_Cats</string>
+    <string name="breeds_not_found">😿 Не найдено пород по вашему запросу</string>
+    <string name="loading_breeds">🐱 Загружаем список пород...</string>
+    <string name="search_hint">Поиск пород кошек</string>
+    <string name="breed_name">Порода</string>
+    <string name="breed_origin">Происхождение</string>
+    <string name="breed_temperament">Характер</string>
 </resources>

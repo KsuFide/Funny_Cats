@@ -46,7 +46,6 @@ dependencies {
     implementation("com.google.android.material:material:1.10.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // Dagger Hilt - ИСПРАВЛЕННЫЕ зависимости
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
 
@@ -67,6 +66,13 @@ dependencies {
 
     // Swipe Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Glide для загрузки изображений
+    implementation ("com.github.bumptech.glide:glide:4.14.2")
+    kapt ("com.github.bumptech.glide:compiler:4.14.2")
+
+    // CardView
+    implementation ("androidx.cardview:cardview:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

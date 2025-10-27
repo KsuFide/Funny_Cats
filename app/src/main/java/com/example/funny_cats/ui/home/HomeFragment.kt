@@ -5,21 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.funny_cats.databinding.FragmentHomeBinding
-import com.example.funny_cats.data.api.RetrofitInstance
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import android.util.Log
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val TAG = "HomeFragment"
 
-    // Временный адаптер (позже заменим на нормальный)
-    private val catImages = mutableListOf<String>()
+    private val viewModel: HomeViewModel by viewModels()
+    private lateinit var adapter: CatImageAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,50 +35,49 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
+        setupObservers()
+
+        binding.textHome.text = "🐱 Загружаем котиков..."
         loadRandomCats()
 
-        // Добавим кнопку обновления
         binding.swipeRefreshLayout.setOnRefreshListener {
             loadRandomCats()
         }
     }
 
     private fun setupRecyclerView() {
-        // Временно просто покажем текст, что данные загружаются
-        binding.textHome.text = "🐱 Загружаем котиков..."
+        adapter = CatImageAdapter()
+        binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        binding.recyclerView.adapter = adapter
+    }
+
+    private fun setupObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.catImages.collect { images ->
+                if (images.isNotEmpty()) {
+                    adapter.submitList(images)
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.textHome.visibility = View.GONE
+                } else {
+                    binding.recyclerView.visibility = View.GONE
+                    binding.textHome.visibility = View.VISIBLE
+                    binding.textHome.text = "😿 Не удалось загрузить котиков"
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isLoading.collect { isLoading ->
+                binding.swipeRefreshLayout.isRefreshing = isLoading
+                if (isLoading) {
+                    binding.textHome.text = "🐱 Загружаем котиков..."
+                }
+            }
+        }
     }
 
     private fun loadRandomCats() {
-        binding.swipeRefreshLayout.isRefreshing = true
-
-        lifecycleScope.launch {
-            try {
-                Log.d(TAG, "🔄 Загружаем случайных котиков...")
-                val response = RetrofitInstance.api.getRandomCats(limit = 10)
-
-                if (response.isNotEmpty()) {
-                    // Сохраняем URLы картинок
-                    catImages.clear()
-                    catImages.addAll(response.map { it.url })
-
-                    // Покажем первую картинку в тексте (временно)
-                    binding.textHome.text = "🐱 Загружено ${response.size} котиков!\n\n" +
-                            "Первая картинка: ${response[0].url}\n\n" +
-                            "Размер: ${response[0].width}x${response[0].height}"
-
-                    Log.d(TAG, "✅ Успешно загружено ${response.size} котиков")
-                } else {
-                    binding.textHome.text = "😿 Котики куда-то пропали...\nПопробуйте обновить"
-                    Log.w(TAG, "⚠️ API вернуло пустой список")
-                }
-
-            } catch (e: Exception) {
-                binding.textHome.text = "❌ Ошибка загрузки:\n${e.message}\n\nПроверьте интернет"
-                Log.e(TAG, "❌ Ошибка при загрузке котиков: ${e.message}", e)
-            } finally {
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
-        }
+        viewModel.loadRandomCats(limit = 10)
     }
 
     override fun onDestroyView() {
