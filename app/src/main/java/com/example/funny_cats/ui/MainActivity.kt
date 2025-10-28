@@ -10,7 +10,9 @@ import com.example.funny_cats.databinding.ActivityMainBinding
 import com.example.funny_cats.ui.breeds.BreedsFragment
 import com.example.funny_cats.ui.favorites.FavoritesFragment
 import com.example.funny_cats.ui.home.HomeFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -78,6 +80,11 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        // По умолчанию показываем HomeFragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.nav_host_fragment, HomeFragment())
+            .commit()
     }
 
     private fun showEmergencyUI() {

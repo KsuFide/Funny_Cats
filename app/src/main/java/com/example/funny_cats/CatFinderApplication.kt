@@ -8,6 +8,5 @@ import dagger.hilt.android.HiltAndroidApp
 class CatFinderApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Hilt автоматически сгенерирует весь необходимый код
     }
 }

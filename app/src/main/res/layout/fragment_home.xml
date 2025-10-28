@@ -3,47 +3,39 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <!-- RecyclerView для отображения котиков -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
 
-                <TextView
-                    android:id="@+id/text_home"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Загрузка..."
-                    android:textSize="16sp"
-                    android:textAlignment="center"
-                    android:lineSpacingExtra="8dp"
-                    android:padding="16dp" />
+            <!-- Запасной TextView на случай ошибок -->
+            <TextView
+                android:id="@+id/text_home"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Загрузка котиков..."
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:lineSpacingExtra="8dp" />
 
-                <!-- Здесь позже добавим RecyclerView для картинок -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="🎨 Скоро здесь будут карточки с котиками!"
-                    android:textAlignment="center"
-                    android:textSize="14sp"
-                    android:textColor="#666"
-                    android:padding="16dp" />
-
-            </LinearLayout>
-
-        </ScrollView>
+        </LinearLayout>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

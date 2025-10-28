@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:orientation="vertical">
 
+    <!-- Поиск -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="🔍 Поиск пород..."
+        android:layout_margin="8dp" />
+
+    <!-- RecyclerView для списка пород -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewBreeds"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+    <!-- Сообщения (загрузка, ошибки, пустой список) -->
     <TextView
         android:id="@+id/text_breeds"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Breeds Fragment"
-        android:textSize="18sp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="🐱 Загружаем список пород..."
         android:textAlignment="center"
+        android:textSize="16sp"
         android:lineSpacingExtra="8dp" />
 
 </LinearLayout>
