@@ -1,4 +1,4 @@
-package com.example.funny_cats.ui.home
+package com.example.funny_cats.ui.history
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,17 +10,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.funny_cats.R
-import com.example.funny_cats.databinding.FragmentHomeBinding
+import com.example.funny_cats.databinding.FragmentHistoryBinding
+import com.example.funny_cats.ui.home.HomePagingAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class HomeFragment : Fragment() {
+class HistoryFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
+    private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: HomeViewModel by viewModels()
+    private val viewModel: HistoryViewModel by viewModels()
     private lateinit var adapter: HomePagingAdapter
 
     override fun onCreateView(
@@ -28,7 +29,7 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -36,12 +37,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-        setupPagingObservers()
-
-        binding.textHome.text = "🐱 Загружаем котиков..."
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            adapter.refresh()
-        }
+        observeData()
+        setupSwipeRefresh()
     }
 
     private fun setupRecyclerView() {
@@ -63,40 +60,46 @@ class HomeFragment : Fragment() {
             }
         }
 
-        binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-        binding.recyclerView.adapter = adapter
+        binding.recyclerViewHistory.layoutManager = GridLayoutManager(requireContext(), 2)
+        binding.recyclerViewHistory.adapter = adapter
     }
 
-    private fun setupPagingObservers() {
+    private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.catsPagingFlow.collectLatest { pagingData ->
+            viewModel.historyImagesPaging.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             adapter.loadStateFlow.collect { loadState ->
-                binding.swipeRefreshLayout.isRefreshing = loadState.refresh is androidx.paging.LoadState.Loading
+                binding.swipeRefresh.isRefreshing = loadState.refresh is androidx.paging.LoadState.Loading
 
-                when (loadState.refresh) {
-                    is androidx.paging.LoadState.Loading -> {
-                        binding.textHome.text = "🐱 Загружаем котиков..."
-                        binding.textHome.visibility = View.VISIBLE
-                        binding.recyclerView.visibility = View.GONE
-                    }
-                    is androidx.paging.LoadState.NotLoading -> {
-                        binding.textHome.visibility = View.GONE
-                        binding.recyclerView.visibility = View.VISIBLE
-                    }
-                    is androidx.paging.LoadState.Error -> {
-                        val errorState = loadState.refresh as androidx.paging.LoadState.Error
-                        binding.textHome.text = "😿 Не удалось загрузить котиков: ${errorState.error.message}"
-                        binding.textHome.visibility = View.VISIBLE
-                        binding.recyclerView.visibility = View.GONE
-                    }
+                val isEmpty = loadState.refresh is androidx.paging.LoadState.NotLoading &&
+                        adapter.itemCount == 0
+
+                if (isEmpty) {
+                    binding.textEmpty.visibility = View.VISIBLE
+                    binding.textEmpty.text = "История просмотров пуста\n\n📸 Смотрите котиков в главной ленте, и они появятся здесь!"
+                    binding.recyclerViewHistory.visibility = View.GONE
+                } else {
+                    binding.textEmpty.visibility = View.GONE
+                    binding.recyclerViewHistory.visibility = View.VISIBLE
                 }
             }
         }
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefresh.setOnRefreshListener {
+            adapter.refresh()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Обновляем список при каждом открытии экрана
+        adapter.refresh()
     }
 
     override fun onDestroyView() {

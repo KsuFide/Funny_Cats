@@ -50,7 +50,6 @@ class FavoritesAdapter(
     }
 }
 
-
 data class FavoriteItem(
     val name: String,
     val imageUrl: String,

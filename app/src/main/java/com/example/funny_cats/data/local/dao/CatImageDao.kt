@@ -34,4 +34,12 @@ interface CatImageDao {
 
     @Query("SELECT * FROM cat_images WHERE id = :imageId")
     suspend fun getImageById(imageId: String): CatImage?
+
+    // Для истории просмотров (сортировка по времени последнего обновления)
+    @Query("SELECT * FROM cat_images WHERE lastUpdated > 0 ORDER BY lastUpdated DESC")
+    fun getHistoryPagingSource(): PagingSource<Int, CatImage>
+
+    // Обновляем время просмотра изображения
+    @Query("UPDATE cat_images SET lastUpdated = :timestamp WHERE id = :imageId")
+    suspend fun updateViewTime(imageId: String, timestamp: Long = System.currentTimeMillis())
 }

@@ -23,4 +23,16 @@
         android:label="Favorites"
         tools:layout="@layout/fragment_favorites" />
 
+    <fragment
+        android:id="@+id/imageDetailFragment"
+        android:name="com.example.funny_cats.ui.detail.ImageDetailFragment"
+        android:label="Image Detail"
+        tools:layout="@layout/fragment_image_detail" />
+
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.funny_cats.ui.history.HistoryFragment"
+        android:label="History"
+        tools:layout="@layout/fragment_history" />
+
 </navigation>
