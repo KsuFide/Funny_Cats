@@ -19,4 +19,9 @@
         android:id="@+id/historyFragment"
         android:icon="@drawable/ic_history"
         android:title="History" />
+
+    <item
+        android:id="@+id/notificationsFragment"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notifications" />
 </menu>

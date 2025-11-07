@@ -69,17 +69,17 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Glide для загрузки изображений
-    implementation ("com.github.bumptech.glide:glide:4.14.2")
-    kapt ("com.github.bumptech.glide:compiler:4.14.2")
+    implementation("com.github.bumptech.glide:glide:4.14.2")
+    kapt("com.github.bumptech.glide:compiler:4.14.2")
 
     // CardView
-    implementation ("androidx.cardview:cardview:1.0.0")
+    implementation("androidx.cardview:cardview:1.0.0")
 
     // Room
-    implementation ("androidx.room:room-runtime:2.6.1")
-    implementation ("androidx.room:room-ktx:2.6.1")
-    implementation ("androidx.room:room-paging:2.6.1")
-    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-paging:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
@@ -88,6 +88,15 @@ dependencies {
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
     implementation("androidx.paging:paging-compose:3.2.1")
+
+    // WorkManager для фоновых задач и уведомлений
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
+    // Для кастомного иконка уведомлений
+    implementation("androidx.core:core-ktx:1.12.0")
+    
+    // Material Design для улучшенных UI компонентов
+    implementation("com.google.android.material:material:1.10.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

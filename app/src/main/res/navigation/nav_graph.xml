@@ -35,4 +35,11 @@
         android:label="History"
         tools:layout="@layout/fragment_history" />
 
+
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.example.funny_cats.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications" />
+
 </navigation>
