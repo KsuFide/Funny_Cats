@@ -1,6 +1,5 @@
 package com.example.funny_cats.util
 
-import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 
@@ -24,9 +23,5 @@ object ThemeHelper {
     fun getSavedTheme(context: Context): String {
         return context.getSharedPreferences("app_theme", Context.MODE_PRIVATE)
             .getString("theme_mode", "SYSTEM") ?: "SYSTEM"
-    }
-
-    fun restartActivity(activity: Activity) {
-        activity.recreate()
     }
 }

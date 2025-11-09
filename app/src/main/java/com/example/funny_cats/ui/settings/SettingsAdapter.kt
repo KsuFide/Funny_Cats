@@ -1,8 +1,5 @@
 package com.example.funny_cats.ui.settings
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,29 +12,6 @@ import com.example.funny_cats.databinding.ItemSettingHeaderBinding
 import com.example.funny_cats.databinding.ItemSettingInfoBinding
 import com.example.funny_cats.databinding.ItemSettingSwitchBinding
 import com.example.funny_cats.databinding.ItemSettingThemeBinding
-
-sealed class SettingsItem {
-    data class Header(val title: String) : SettingsItem()
-    data class SwitchSetting(
-        val id: String,
-        val title: String,
-        val description: String,
-        val isChecked: Boolean,
-        val onCheckedChange: (Boolean) -> Unit
-    ) : SettingsItem()
-
-    data class ThemeSetting(
-        val currentTheme: String,
-        val onThemeSelected: (String) -> Unit
-    ) : SettingsItem()
-
-    data class InfoSetting(
-        val title: String,
-        val value: String,
-        val showDivider: Boolean = true,
-        val onClick: (() -> Unit)? = null  // Добавляем обработчик клика
-    ) : SettingsItem()
-}
 
 class SettingsAdapter : ListAdapter<SettingsItem, RecyclerView.ViewHolder>(DiffCallback) {
 
@@ -121,25 +95,34 @@ class SettingsAdapter : ListAdapter<SettingsItem, RecyclerView.ViewHolder>(DiffC
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: SettingsItem.ThemeSetting) {
             binding.textTitle.text = "Тема приложения"
-            binding.textCurrentTheme.text = when (item.currentTheme) {
-                "LIGHT" -> "Светлая"
-                "DARK" -> "Тёмная"
-                else -> "Системная"
-            }
+            binding.textCurrentTheme.text = item.currentTheme
 
+            // ДЕЛАЕМ КЛИКАБЕЛЬНЫМ - добавляем обработчик клика
             binding.root.setOnClickListener {
                 showThemeDialog(item.onThemeSelected)
             }
+
+            // Добавляем визуальную индикацию кликабельности
+            binding.root.isClickable = true
+            binding.root.isFocusable = true
+
+            // Добавляем стрелочку для индикации
+            binding.textCurrentTheme.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_arrow_forward, 0)
+            binding.textCurrentTheme.compoundDrawablePadding = 16
         }
 
         private fun showThemeDialog(onThemeSelected: (String) -> Unit) {
             val themes = arrayOf("Светлая", "Тёмная", "Системная")
-            val themeValues = arrayOf("LIGHT", "DARK", "SYSTEM")
+            val currentTheme = binding.textCurrentTheme.text.toString()
 
             androidx.appcompat.app.AlertDialog.Builder(binding.root.context)
                 .setTitle("Выберите тему")
-                .setItems(themes) { _, which ->
-                    onThemeSelected(themeValues[which])
+                .setSingleChoiceItems(themes, themes.indexOf(currentTheme)) { dialog, which ->
+                    onThemeSelected(themes[which])
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Отмена") { dialog, _ ->
+                    dialog.dismiss()
                 }
                 .show()
         }
@@ -151,35 +134,11 @@ class SettingsAdapter : ListAdapter<SettingsItem, RecyclerView.ViewHolder>(DiffC
             binding.textTitle.text = item.title
             binding.textValue.text = item.value
 
-            // Показываем или скрываем разделитель
             binding.divider.visibility = if (item.showDivider) View.VISIBLE else View.GONE
 
-            // ДОБАВЛЯЕМ ОБРАБОТЧИК КЛИКА
             binding.root.setOnClickListener {
                 item.onClick?.invoke()
             }
-
-            // Меняем внешний вид для кликабельных элементов
-            if (item.onClick != null) {
-                binding.root.isClickable = true
-                binding.root.background = createSelectableBackground()
-                binding.textValue.setTextColor(ContextCompat.getColor(binding.root.context, R.color.purple_700))
-                // Добавляем стрелочку для индикации перехода
-                binding.textValue.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_arrow_forward, 0)
-            } else {
-                binding.root.isClickable = false
-                binding.root.background = null
-                binding.textValue.setTextColor(ContextCompat.getColor(binding.root.context, android.R.color.tab_indicator_text))
-                binding.textValue.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-            }
-        }
-
-        private fun createSelectableBackground(): Drawable {
-            val attrs = intArrayOf(android.R.attr.selectableItemBackground)
-            val typedArray = binding.root.context.obtainStyledAttributes(attrs)
-            val background = typedArray.getDrawable(0)
-            typedArray.recycle()
-            return background ?: ColorDrawable(Color.TRANSPARENT)
         }
     }
 

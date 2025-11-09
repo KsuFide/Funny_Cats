@@ -1,38 +1,63 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Базовая тема приложения -->
+    <!-- Базовая светлая тема приложения -->
     <style name="Base.Theme.Funny_Cats" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/gray_800</item>
+        <item name="colorPrimaryVariant">@color/gray_900</item>
         <item name="colorOnPrimary">@color/white</item>
 
         <!-- Secondary colors -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondary">@color/accent_blue</item>
+        <item name="colorSecondaryVariant">@color/gray_700</item>
+        <item name="colorOnSecondary">@color/white</item>
 
         <!-- Background colors -->
         <item name="android:colorBackground">@color/background_light</item>
-        <item name="colorSurface">@color/white</item>
+        <item name="colorSurface">@color/surface_light</item>
         <item name="colorOnSurface">@color/text_primary_light</item>
 
-        <!-- Status bar -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Error colors -->
+        <item name="colorError">#FFB00020</item>
+        <item name="colorOnError">@color/white</item>
 
-        <!-- Material 3 specific -->
-        <item name="materialThemeOverlay">@style/ThemeOverlay.FunnyCats</item>
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/gray_900</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/white</item>
+
+
+        <!-- CardView style -->
+        <item name="cardViewStyle">@style/CardView.FunnyCats.Light</item>
+
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Button.FunnyCats.Light</item>
     </style>
 
     <style name="Theme.Funny_Cats" parent="Base.Theme.Funny_Cats" />
 
-    <!-- Theme overlay for Material 3 components -->
-    <style name="ThemeOverlay.FunnyCats" parent="">
-        <item name="cardViewStyle">@style/CardView.FunnyCats</item>
-    </style>
-
-    <!-- Custom CardView style -->
-    <style name="CardView.FunnyCats" parent="CardView">
+    <!-- Стиль для CardView в светлой теме -->
+    <style name="CardView.FunnyCats.Light" parent="CardView">
         <item name="cardCornerRadius">12dp</item>
         <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/surface_light</item>
+        <item name="contentPadding">8dp</item>
+    </style>
+
+    <!-- Стиль для кнопок в светлой теме -->
+    <style name="Button.FunnyCats.Light" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/accent_blue</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Стиль для текстовых полей -->
+    <style name="EditText.FunnyCats.Light" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="boxStrokeColor">@color/gray_300</item>
+        <item name="android:textColor">@color/text_primary_light</item>
+        <item name="android:textColorHint">@color/text_secondary_light</item>
     </style>
 </resources>

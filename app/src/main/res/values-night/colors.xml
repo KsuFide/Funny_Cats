@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Переопределяем цвета для тёмной темы -->
+
+    <!-- Базовые цвета -->
+    <color name="white">#FF1A1A1A</color>  <!-- тёмный фон -->
+    <color name="black">#FFFFFFFF</color>  <!-- светлый текст -->
+
+    <!-- Серые тона: инвертируем, чтобы светлые стали тёмными, а тёмные светлыми -->
+    <color name="gray_50">#FF1A1A1A</color>   <!-- самый тёмный -->
+    <color name="gray_100">#FF2D2D2D</color>
+    <color name="gray_200">#FF3D3D3D</color>
+    <color name="gray_300">#FF4D4D4D</color>
+    <color name="gray_400">#FF5D5D5D</color>
+    <color name="gray_500">#FF6D6D6D</color>
+    <color name="gray_600">#FF7D7D7D</color>
+    <color name="gray_700">#FF8D8D8D</color>
+    <color name="gray_800">#FF9D9D9D</color>
+    <color name="gray_900">#FFADADAD</color>   <!-- самый светлый -->
+
+    <!-- Старые цвета для совместимости -->
+    <color name="gray">@color/gray_500</color>      <!-- средний серый -->
+    <color name="dark_gray">@color/gray_200</color> <!-- тёмный серый -->
+
+    <!-- Акцентные цвета (можно оставить как есть) -->
+    <color name="accent_blue">#FF2196F3</color>
+    <color name="accent_orange">#FFFF9800</color>
+
+    <!-- Фоновые цвета -->
+    <color name="background_light">@color/gray_50</color>  <!-- тёмный -->
+    <color name="background_dark">@color/gray_50</color>   <!-- тёмный -->
+    <color name="surface_light">@color/gray_100</color>   <!-- тёмный -->
+    <color name="surface_dark">@color/gray_100</color>    <!-- тёмный -->
+
+    <!-- Текстовые цвета -->
+    <color name="text_primary_light">@color/gray_900</color>  <!-- светлый -->
+    <color name="text_primary_dark">@color/gray_900</color>   <!-- светлый -->
+    <color name="text_secondary_light">@color/gray_800</color> <!-- светлый -->
+    <color name="text_secondary_dark">@color/gray_800</color>  <!-- светлый -->
+</resources>

@@ -3,7 +3,6 @@ package com.example.funny_cats.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.funny_cats.data.local.model.AppSettings
-import com.example.funny_cats.data.local.model.ThemeMode
 import com.example.funny_cats.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,12 +22,6 @@ class SettingsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = AppSettings()
         )
-
-    fun updateThemeMode(themeMode: ThemeMode) {
-        viewModelScope.launch {
-            settingsRepository.updateThemeMode(themeMode)
-        }
-    }
 
     fun updateRandomCatsSetting(enabled: Boolean) {
         viewModelScope.launch {
@@ -53,8 +46,6 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.updateNotificationsEnabled(enabled)
         }
     }
-
-
 
     fun updateAllSettings(settings: AppSettings) {
         viewModelScope.launch {

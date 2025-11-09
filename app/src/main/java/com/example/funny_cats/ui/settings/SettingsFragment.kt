@@ -11,9 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentSettingsBinding
-import com.example.funny_cats.data.local.model.ThemeMode
 import com.example.funny_cats.util.ThemeHelper
-import com.example.funny_cats.ui.settings.SettingsItem as SettingsItemModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -64,12 +62,12 @@ class SettingsFragment : Fragment() {
     }
 
     private fun updateSettingsList(settings: com.example.funny_cats.data.local.model.AppSettings) {
-        val settingsList = mutableListOf<SettingsItemModel>()
+        val settingsList = mutableListOf<SettingsItem>()
 
-        // Раздел уведомлений - ПЕРЕМЕЩАЕМ ВВЕРХ
-        settingsList.add(SettingsItemModel.Header("🔔 Уведомления"))
+        // Раздел уведомлений
+        settingsList.add(SettingsItem.Header("🔔 Уведомления"))
         settingsList.add(
-            SettingsItemModel.SwitchSetting(
+            SettingsItem.SwitchSetting(
                 id = "notifications",
                 title = "Уведомления",
                 description = "Включить все уведомления",
@@ -81,23 +79,33 @@ class SettingsFragment : Fragment() {
             )
         )
 
-        // ДОБАВЛЯЕМ КЛИКАБЕЛЬНЫЙ ПУНКТ ДЛЯ ПЕРЕХОДА К НАСТРОЙКАМ УВЕДОМЛЕНИЙ
+        // Кликабельный пункт для настроек уведомлений
         settingsList.add(
-            SettingsItemModel.InfoSetting(
+            SettingsItem.InfoSetting(
                 title = "Настройки уведомлений",
                 value = "Настроить типы уведомлений",
                 showDivider = true,
                 onClick = {
-                    // Переход к фрагменту уведомлений
                     findNavController().navigate(R.id.action_settingsFragment_to_notificationsFragment)
                 }
             )
         )
 
-        // Раздел контента
-        settingsList.add(SettingsItemModel.Header("📱 Контент"))
+        // Раздел внешнего вида
+        settingsList.add(SettingsItem.Header("🎨 Внешний вид"))
         settingsList.add(
-            SettingsItemModel.SwitchSetting(
+            SettingsItem.ThemeSetting(
+                currentTheme = getCurrentThemeName(),
+                onThemeSelected = { theme ->
+                    applyTheme(theme)
+                }
+            )
+        )
+
+        // Раздел контента
+        settingsList.add(SettingsItem.Header("📱 Контент"))
+        settingsList.add(
+            SettingsItem.SwitchSetting(
                 id = "random_cats",
                 title = "Случайные котики",
                 description = "Показывать случайных котиков в ленте",
@@ -108,7 +116,7 @@ class SettingsFragment : Fragment() {
             )
         )
         settingsList.add(
-            SettingsItemModel.SwitchSetting(
+            SettingsItem.SwitchSetting(
                 id = "breed_images",
                 title = "Изображения пород",
                 description = "Показывать изображения для каждой породы",
@@ -119,23 +127,10 @@ class SettingsFragment : Fragment() {
             )
         )
 
-        // Раздел внешнего вида
-        settingsList.add(SettingsItemModel.Header("🎨 Внешний вид"))
-        settingsList.add(
-            SettingsItemModel.ThemeSetting(
-                currentTheme = settings.themeMode.name,
-                onThemeSelected = { theme ->
-                    viewModel.updateThemeMode(ThemeMode.valueOf(theme))
-                    ThemeHelper.applyTheme(theme)
-                    ThemeHelper.saveThemePreference(requireContext(), theme)
-                }
-            )
-        )
-
         // Экспериментальные функции
-        settingsList.add(SettingsItemModel.Header("🧪 Экспериментальные функции"))
+        settingsList.add(SettingsItem.Header("🧪 Экспериментальные функции"))
         settingsList.add(
-            SettingsItemModel.SwitchSetting(
+            SettingsItem.SwitchSetting(
                 id = "compose",
                 title = "Использовать Compose",
                 description = "Включить экспериментальный UI на Compose",
@@ -148,23 +143,23 @@ class SettingsFragment : Fragment() {
         )
 
         // О приложении
-        settingsList.add(SettingsItemModel.Header("ℹ️ О приложении"))
+        settingsList.add(SettingsItem.Header("ℹ️ О приложении"))
         settingsList.add(
-            SettingsItemModel.InfoSetting(
+            SettingsItem.InfoSetting(
                 title = "Версия",
                 value = "1.0.0",
                 showDivider = true
             )
         )
         settingsList.add(
-            SettingsItemModel.InfoSetting(
+            SettingsItem.InfoSetting(
                 title = "Разработчик",
                 value = "CatFinder Team",
                 showDivider = true
             )
         )
         settingsList.add(
-            SettingsItemModel.InfoSetting(
+            SettingsItem.InfoSetting(
                 title = "Источник данных",
                 value = "The Cat API",
                 showDivider = false
@@ -174,11 +169,33 @@ class SettingsFragment : Fragment() {
         adapter.submitList(settingsList)
     }
 
+    private fun getCurrentThemeName(): String {
+        return when (ThemeHelper.getSavedTheme(requireContext())) {
+            "LIGHT" -> "Светлая"
+            "DARK" -> "Тёмная"
+            else -> "Системная"
+        }
+    }
+
+    private fun applyTheme(theme: String) {
+        val themeValue = when (theme) {
+            "Светлая" -> "LIGHT"
+            "Тёмная" -> "DARK"
+            else -> "SYSTEM"
+        }
+
+        ThemeHelper.applyTheme(themeValue)
+        ThemeHelper.saveThemePreference(requireContext(), themeValue)
+
+        // Перезапускаем активность для применения темы
+        requireActivity().recreate()
+    }
+
     private fun showRestartDialog() {
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.restart_dialog_title))
-            .setMessage(getString(R.string.restart_dialog_message))
-            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
+            .setTitle("Перезапуск приложения")
+            .setMessage("Для применения некоторых настроек требуется перезапуск приложения")
+            .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
             }
             .show()
