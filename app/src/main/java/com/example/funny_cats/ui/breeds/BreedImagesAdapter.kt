@@ -1,6 +1,7 @@
 package com.example.funny_cats.ui.breeds
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,6 +12,8 @@ import com.example.funny_cats.databinding.ItemCatImageBinding
 
 class BreedImagesAdapter : ListAdapter<CatImage, BreedImagesAdapter.BreedImageViewHolder>(DiffCallback) {
 
+    var onImageClick: ((CatImage) -> Unit)? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BreedImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return BreedImageViewHolder(binding)
@@ -20,12 +23,19 @@ class BreedImagesAdapter : ListAdapter<CatImage, BreedImagesAdapter.BreedImageVi
         holder.bind(getItem(position))
     }
 
-    class BreedImageViewHolder(private val binding: ItemCatImageBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class BreedImageViewHolder(private val binding: ItemCatImageBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(catImage: CatImage) {
             Glide.with(binding.root)
                 .load(catImage.url)
                 .centerCrop()
                 .into(binding.imageView)
+
+            // Полностью скрываем кнопку избранного в деталях пород
+            binding.favoriteButton.visibility = View.GONE
+
+            binding.imageView.setOnClickListener {
+                onImageClick?.invoke(catImage)
+            }
         }
     }
 

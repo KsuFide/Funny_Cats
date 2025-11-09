@@ -7,8 +7,11 @@ import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.CatImage
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class CatImageRepository(private val database: CatDatabase) {
+class CatImageRepository @Inject constructor(
+    private val database: CatDatabase
+) {
 
     private val dao = database.catImageDao()
 
@@ -16,7 +19,7 @@ class CatImageRepository(private val database: CatDatabase) {
     fun getImagesPaging(): Flow<PagingData<CatImage>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 10, // Загружаем по 10 изображений за раз
+                pageSize = 10,
                 enablePlaceholders = false,
                 maxSize = 100
             ),
@@ -52,9 +55,44 @@ class CatImageRepository(private val database: CatDatabase) {
         }
     }
 
+    // Загрузка изображений породы
+    suspend fun loadBreedImages(breedId: String, limit: Int = 8): List<CatImage> {
+        return try {
+            val imagesFromApi = RetrofitInstance.api.getBreedImages(breedId, limit)
+
+            // Для каждого изображения проверяем состояние в базе
+            val imagesWithFavoriteStatus = mutableListOf<CatImage>()
+            for (apiImage in imagesFromApi) {
+                val imageFromDb = dao.getImageById(apiImage.id)
+                val isFavorite = imageFromDb?.isInFavorites ?: false
+                // Сохраняем изображение в базу с правильным состоянием избранного
+                val imageToSave = apiImage.copy(
+                    isInFavorites = isFavorite,
+                    lastUpdated = System.currentTimeMillis()
+                )
+                dao.insertAll(listOf(imageToSave))
+                imagesWithFavoriteStatus.add(imageToSave)
+            }
+
+            imagesWithFavoriteStatus
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     // Обновление статуса избранного
     suspend fun toggleFavorite(imageId: String, isFavorite: Boolean) {
         dao.updateFavoriteStatus(imageId, isFavorite)
+    }
+
+    // Получение изображения по ID
+    suspend fun getImageById(imageId: String): CatImage? {
+        return dao.getImageById(imageId)
+    }
+
+    suspend fun updateViewTime(imageId: String) {
+        dao.updateViewTime(imageId, System.currentTimeMillis())
     }
 
     // Очистка кэша

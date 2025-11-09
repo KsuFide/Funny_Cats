@@ -4,34 +4,48 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.funny_cats.R
 import com.example.funny_cats.data.local.model.CatBreed
+import com.example.funny_cats.data.local.model.CatBreedEntity
+import com.example.funny_cats.data.repository.toCatBreed
 import com.example.funny_cats.databinding.ItemBreedBinding
+import com.example.funny_cats.util.RussianTranslator
 
 class BreedsAdapter(
     private val onItemClick: (CatBreed) -> Unit
-) : PagingDataAdapter<CatBreed, BreedsAdapter.BreedsViewHolder>(DiffCallback) {
+) : PagingDataAdapter<CatBreedEntity, BreedsAdapter.BreedsViewHolder>(DiffCallback) {
 
     inner class BreedsViewHolder(private val binding: ItemBreedBinding) :
-        androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(breed: CatBreed?) {
+        fun bind(breed: CatBreedEntity?) {
             breed?.let { catBreed ->
                 with(binding) {
                     // Загрузка изображения
                     Glide.with(imageViewBreed.context)
-                        .load(catBreed.getImageUrl())
+                        .load(catBreed.imageId?.let { "https://cdn2.thecatapi.com/images/$it.jpg" })
                         .placeholder(R.drawable.ic_cat_placeholder)
                         .error(R.drawable.ic_cat_placeholder)
                         .into(imageViewBreed)
 
-                    textViewBreedName.text = catBreed.name
-                    textViewBreedOrigin.text = catBreed.origin ?: "Неизвестно"
-                    textViewBreedTemperament.text = catBreed.temperament ?: "Не указан"
+                    // Русское название породы
+                    textViewBreedName.text = RussianTranslator.translateBreedName(catBreed.name)
 
+                    // Русское происхождение
+                    textViewBreedOrigin.text = RussianTranslator.translateOrigin(catBreed.origin)
+
+                    // Русский темперамент (сокращенный)
+                    textViewBreedTemperament.text = RussianTranslator.getShortTemperament(catBreed.temperament)
+
+                    // Обработчик клика с безопасностью
                     root.setOnClickListener {
-                        onItemClick(catBreed)
+                        try {
+                            onItemClick(catBreed.toCatBreed())
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -51,12 +65,12 @@ class BreedsAdapter(
         holder.bind(getItem(position))
     }
 
-    companion object DiffCallback : DiffUtil.ItemCallback<CatBreed>() {
-        override fun areItemsTheSame(oldItem: CatBreed, newItem: CatBreed): Boolean {
+    companion object DiffCallback : DiffUtil.ItemCallback<CatBreedEntity>() {
+        override fun areItemsTheSame(oldItem: CatBreedEntity, newItem: CatBreedEntity): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: CatBreed, newItem: CatBreed): Boolean {
+        override fun areContentsTheSame(oldItem: CatBreedEntity, newItem: CatBreedEntity): Boolean {
             return oldItem == newItem
         }
     }

@@ -31,7 +31,7 @@
                 android:id="@+id/textViewBreedName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/breed_name"
+                android:text="Название породы"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -41,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/breed_origin"
+                android:text="Происхождение"
                 android:textColor="@color/gray"
                 android:textSize="14sp" />
 
@@ -52,7 +52,7 @@
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:text="@string/breed_temperament"
+                android:text="Темперамент"
                 android:textColor="@color/dark_gray"
                 android:textSize="12sp" />
 

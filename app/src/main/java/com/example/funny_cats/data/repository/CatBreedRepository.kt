@@ -13,7 +13,6 @@ class CatBreedRepository(private val database: CatDatabase) {
 
     private val dao = database.catBreedDao()
 
-    // Пагинация для всех пород
     fun getBreedsPaging(): Flow<PagingData<CatBreedEntity>> {
         return Pager(
             config = PagingConfig(
@@ -27,7 +26,6 @@ class CatBreedRepository(private val database: CatDatabase) {
         ).flow
     }
 
-    // Пагинация для поиска
     fun searchBreedsPaging(query: String): Flow<PagingData<CatBreedEntity>> {
         return Pager(
             config = PagingConfig(
@@ -41,15 +39,6 @@ class CatBreedRepository(private val database: CatDatabase) {
         ).flow
     }
 
-    // Старые методы для обратной совместимости
-    fun getAllBreeds(): Flow<List<CatBreedEntity>> {
-        return dao.getAllBreeds()
-    }
-
-    fun searchBreeds(query: String): Flow<List<CatBreedEntity>> {
-        return dao.searchBreeds(query)
-    }
-
     suspend fun refreshBreeds() {
         try {
             val breedsFromApi = RetrofitInstance.api.getAllBreeds()
@@ -60,20 +49,12 @@ class CatBreedRepository(private val database: CatDatabase) {
         }
     }
 
-    suspend fun toggleFavorite(breedId: String, isFavorite: Boolean) {
-        dao.updateFavoriteStatus(breedId, isFavorite)
-    }
-
-    suspend fun toggleWatchLater(breedId: String, inWatchLater: Boolean) {
-        dao.updateWatchLaterStatus(breedId, inWatchLater)
-    }
-
     suspend fun clearCache() {
         dao.clearAll()
     }
 }
 
-// Расширение для конвертации API модели в Entity
+// Конвертация без избранного
 private fun CatBreed.toEntity(): CatBreedEntity {
     return CatBreedEntity(
         id = this.id,
@@ -86,25 +67,22 @@ private fun CatBreed.toEntity(): CatBreedEntity {
         lifeSpan = this.lifeSpan,
         intelligence = this.intelligence,
         dogFriendly = this.dogFriendly,
-        adaptability = this.adaptability,
-        isInFavorites = false,
-        isInWatchLater = false
-    )
-}
-
-// Расширение для конвертации Entity в CatBreed
-fun CatBreedEntity.toCatBreed(): CatBreed {
-    return CatBreed(
-        id = this.id,
-        name = this.name,
-        origin = this.origin,
-        temperament = this.temperament,
-        description = this.description,
-        wikipediaUrl = this.wikipediaUrl,
-        imageId = this.imageId,
-        lifeSpan = this.lifeSpan,
-        intelligence = this.intelligence,
-        dogFriendly = this.dogFriendly,
         adaptability = this.adaptability
-    )
+    )}
+
+    // Расширение для конвертации Entity в CatBreed (для деталей породы)
+    fun CatBreedEntity.toCatBreed(): CatBreed {
+        return CatBreed(
+            id = this.id,
+            name = this.name,
+            origin = this.origin,
+            temperament = this.temperament,
+            description = this.description,
+            wikipediaUrl = this.wikipediaUrl,
+            imageId = this.imageId,
+            lifeSpan = this.lifeSpan,
+            intelligence = this.intelligence,
+            dogFriendly = this.dogFriendly,
+            adaptability = this.adaptability
+        )
 }

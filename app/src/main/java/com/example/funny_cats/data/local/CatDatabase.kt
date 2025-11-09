@@ -6,23 +6,27 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.funny_cats.data.local.converters.ListConverters
+import com.example.funny_cats.data.local.dao.AppSettingsDao
 import com.example.funny_cats.data.local.dao.CatBreedDao
 import com.example.funny_cats.data.local.dao.CatImageDao
 import com.example.funny_cats.data.local.dao.NotificationDao
+import com.example.funny_cats.data.local.model.AppSettings
 import com.example.funny_cats.data.local.model.CatBreedEntity
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.data.local.model.NotificationSetting
 
 @Database(
-    entities = [CatBreedEntity::class, CatImage::class, NotificationSetting::class],
-    version = 4,
+    entities = [CatBreedEntity::class, CatImage::class, NotificationSetting::class, AppSettings::class],
+    version = 5,
     exportSchema = false
 )
+@TypeConverters(ListConverters::class)
 abstract class CatDatabase : RoomDatabase() {
 
     abstract fun catBreedDao(): CatBreedDao
     abstract fun catImageDao(): CatImageDao
-    abstract fun notificationDao(): NotificationDao // ДОБАВЛЯЕМ
+    abstract fun notificationDao(): NotificationDao
+    abstract fun appSettingsDao(): AppSettingsDao
 
     companion object {
         @Volatile

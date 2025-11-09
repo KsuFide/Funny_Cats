@@ -21,12 +21,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Funny_Cats">
 
-        <!-- Добавляем WorkManager -->
-        <provider
-            android:name="androidx.work.impl.WorkManagerInitializer"
-            android:authorities="${applicationId}.workmanager-init"
-            android:exported="false"
-            tools:node="remove" />
+<!--        &lt;!&ndash; Добавляем WorkManager &ndash;&gt;-->
+<!--        <provider-->
+<!--            android:name="androidx.work.impl.WorkManagerInitializer"-->
+<!--            android:authorities="${applicationId}.workmanager-init"-->
+<!--            android:exported="false"-->
+<!--            tools:node="remove" />-->
 
         <activity
             android:name=".ui.MainActivity"

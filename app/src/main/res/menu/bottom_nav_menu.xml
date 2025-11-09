@@ -3,25 +3,25 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@drawable/ic_home"
-        android:title="Random Cats" />
+        android:title="Главная" />
 
     <item
         android:id="@+id/breedsFragment"
         android:icon="@drawable/ic_breeds"
-        android:title="Breeds" />
+        android:title="Породы" />
 
     <item
         android:id="@+id/favoritesFragment"
         android:icon="@drawable/ic_favorite_filled"
-        android:title="Favorites" />
+        android:title="Избранное" />
 
     <item
         android:id="@+id/historyFragment"
         android:icon="@drawable/ic_history"
-        android:title="History" />
+        android:title="История" />
 
     <item
-        android:id="@+id/notificationsFragment"
-        android:icon="@drawable/ic_notifications"
-        android:title="Notifications" />
+        android:id="@+id/settingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="Настройки" />
 </menu>

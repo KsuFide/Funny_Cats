@@ -43,7 +43,6 @@ class FavoritesAdapter(
 
                 // Кнопка удаления из избранного
                 removeButton.setOnClickListener {
-                    // TODO: Реализовать удаление из избранного
                 }
             }
         }

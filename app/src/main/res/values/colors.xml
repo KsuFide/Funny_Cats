@@ -4,28 +4,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Основные цвета темы -->
+    <!-- Основные цвета темы (Light) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-
-    <!-- Дополнительные цвета -->
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
-    <!-- Дополнительные системные цвета -->
-    <color name="purple_200_light">#FFBB86FC</color>
-    <color name="purple_500_light">#FF6200EE</color>
-    <color name="purple_700_light">#FF3700B3</color>
-    <color name="teal_200_light">#FF03DAC5</color>
-    <color name="teal_700_light">#FF018786</color>
-
-    <!-- Темные версии для ночной темы -->
-    <color name="purple_200_dark">#FFBB86FC</color>
-    <color name="purple_500_dark">#FFBB86FC</color>
-    <color name="purple_700_dark">#FF3700B3</color>
-    <color name="teal_200_dark">#FF03DAC5</color>
-    <color name="teal_700_dark">#FF03DAC5</color>
 
     <!-- Фоновые цвета -->
     <color name="background_light">#FFF5F5F5</color>
@@ -38,4 +23,36 @@
     <color name="text_secondary_dark">#B3FFFFFF</color>
     <color name="gray">#B36D6D6D</color>
     <color name="dark_gray">#B32E2E2E</color>
+
+    <!-- Material 3 Color Tokens -->
+    <color name="md_theme_light_primary">@color/purple_500</color>
+    <color name="md_theme_light_onPrimary">@color/white</color>
+    <color name="md_theme_light_primaryContainer">@color/purple_200</color>
+    <color name="md_theme_light_onPrimaryContainer">@color/purple_700</color>
+    <color name="md_theme_light_secondary">@color/teal_200</color>
+    <color name="md_theme_light_onSecondary">@color/black</color>
+    <color name="md_theme_light_secondaryContainer">@color/teal_700</color>
+    <color name="md_theme_light_onSecondaryContainer">@color/white</color>
+    <color name="md_theme_light_surface">@color/white</color>
+    <color name="md_theme_light_onSurface">@color/text_primary_light</color>
+    <color name="md_theme_light_surfaceVariant">@color/background_light</color>
+    <color name="md_theme_light_onSurfaceVariant">@color/text_secondary_light</color>
+    <color name="md_theme_light_background">@color/background_light</color>
+    <color name="md_theme_light_onBackground">@color/text_primary_light</color>
+
+    <!-- Material 3 Color Tokens (Dark) -->
+    <color name="md_theme_dark_primary">@color/purple_200</color>
+    <color name="md_theme_dark_onPrimary">@color/black</color>
+    <color name="md_theme_dark_primaryContainer">@color/purple_700</color>
+    <color name="md_theme_dark_onPrimaryContainer">@color/purple_200</color>
+    <color name="md_theme_dark_secondary">@color/teal_200</color>
+    <color name="md_theme_dark_onSecondary">@color/black</color>
+    <color name="md_theme_dark_secondaryContainer">@color/teal_200</color>
+    <color name="md_theme_dark_onSecondaryContainer">@color/black</color>
+    <color name="md_theme_dark_surface">@color/black</color>
+    <color name="md_theme_dark_onSurface">@color/text_primary_dark</color>
+    <color name="md_theme_dark_surfaceVariant">@color/background_dark</color>
+    <color name="md_theme_dark_onSurfaceVariant">@color/text_secondary_dark</color>
+    <color name="md_theme_dark_background">@color/background_dark</color>
+    <color name="md_theme_dark_onBackground">@color/text_primary_dark</color>
 </resources>

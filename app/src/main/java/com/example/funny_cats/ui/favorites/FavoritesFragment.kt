@@ -54,14 +54,40 @@ class FavoritesFragment : Fragment() {
 
         adapter.onFavoriteClick = { catImage, isFavorite ->
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.toggleImageFavorite(catImage.id, isFavorite)
-                val message = if (isFavorite) "Добавлено в избранное! ❤️" else "Удалено из избранного"
-                android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+                if (!isFavorite) {
+                    // Удаление из избранного
+                    viewModel.toggleImageFavorite(catImage.id, false)
+                    showToast("Удалено из избранного")
+                    // ОБНОВЛЯЕМ СПИСОК ПОСЛЕ УДАЛЕНИЯ
+                    adapter.refresh()
+                }
             }
+        }
+
+        // Долгое нажатие для удаления
+        adapter.onImageLongClick = { catImage ->
+            showDeleteConfirmationDialog(catImage)
         }
 
         binding.recyclerViewFavorites.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerViewFavorites.adapter = adapter
+    }
+
+    private fun showDeleteConfirmationDialog(catImage: com.example.funny_cats.data.local.model.CatImage) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Удалить из избранного")
+            .setMessage("Вы уверены, что хотите удалить этого котика из избранного?")
+            .setPositiveButton("Удалить") { dialog, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.toggleImageFavorite(catImage.id, false)
+                    showToast("Удалено из избранного")
+                    // ОБНОВЛЯЕМ СПИСОК ПОСЛЕ УДАЛЕНИЯ
+                    adapter.refresh()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun observeData() {
@@ -96,9 +122,12 @@ class FavoritesFragment : Fragment() {
         }
     }
 
+    private fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
     override fun onResume() {
         super.onResume()
-        // Обновляем список при каждом открытии экрана
         adapter.refresh()
     }
 

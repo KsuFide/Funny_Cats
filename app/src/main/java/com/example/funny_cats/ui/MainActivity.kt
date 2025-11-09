@@ -1,92 +1,62 @@
 package com.example.funny_cats.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.ActivityMainBinding
-import com.example.funny_cats.ui.breeds.BreedsFragment
-import com.example.funny_cats.ui.favorites.FavoritesFragment
-import com.example.funny_cats.ui.home.HomeFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val TAG = "MainActivityDebug"
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "🚀 MainActivity starting...")
 
-        try {
-            binding = ActivityMainBinding.inflate(layoutInflater)
-            setContentView(binding.root)
-            Log.d(TAG, "✅ Layout inflated successfully")
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-            setupNavigation()
-
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Critical error: ${e.message}", e)
-            showEmergencyUI()
-        }
+        setupNavigation()
     }
 
     private fun setupNavigation() {
-        try {
-            // Получаем NavHostFragment
-            val navHostFragment = supportFragmentManager
-                .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-            val navController = navHostFragment.navController
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
-            Log.d(TAG, "NavController found: $navController")
-
-            // Связываем BottomNavigationView с NavController
-            binding.bottomNavigation.setupWithNavController(navController)
-
-            Log.d(TAG, "✅ Navigation setup completed successfully")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Navigation setup failed: ${e.message}", e)
-            setupSimpleNavigationFallback()
-        }
-    }
-
-    private fun setupSimpleNavigationFallback() {
-        Log.d(TAG, "🔄 Setting up fallback navigation")
+        //  очищаем стек при каждом переходе
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.homeFragment -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, HomeFragment())
-                        .commit()
+                    navController.navigate(R.id.homeFragment)
                     true
                 }
                 R.id.breedsFragment -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, BreedsFragment())
-                        .commit()
+                    // ПЕРЕЗАПУСКАЕМ фрагмент каждый раз
+                    navController.popBackStack(R.id.breedsFragment, true)
+                    navController.navigate(R.id.breedsFragment)
                     true
                 }
                 R.id.favoritesFragment -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, FavoritesFragment())
-                        .commit()
+                    navController.navigate(R.id.favoritesFragment)
+                    true
+                }
+                R.id.historyFragment -> {
+                    navController.navigate(R.id.historyFragment)
+                    true
+                }
+                R.id.settingsFragment -> {
+                    navController.navigate(R.id.settingsFragment)
                     true
                 }
                 else -> false
             }
         }
-
-        // По умолчанию показываем HomeFragment
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment, HomeFragment())
-            .commit()
     }
-
     private fun showEmergencyUI() {
         val textView = android.widget.TextView(this).apply {
             text = "🐱 CatFinder\n\nТехнические работы\n\nСкоро вернемся!"

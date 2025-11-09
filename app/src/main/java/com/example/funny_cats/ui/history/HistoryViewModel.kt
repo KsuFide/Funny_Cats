@@ -19,7 +19,6 @@ class HistoryViewModel @Inject constructor(
 
     private val imageDao = database.catImageDao()
 
-    // История просмотров - изображения отсортированные по времени просмотра
     val historyImagesPaging: Flow<PagingData<com.example.funny_cats.data.local.model.CatImage>> =
         Pager(
             config = PagingConfig(
