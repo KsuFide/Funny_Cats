@@ -5,6 +5,8 @@ import androidx.paging.PagingState
 import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.CatImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class RandomCatsPagingSource(
     private val database: CatDatabase
@@ -17,14 +19,23 @@ class RandomCatsPagingSource(
             val page = params.key ?: 0
             val response = RetrofitInstance.api.getRandomCats(limit = params.loadSize)
 
-            // Сохраняем изображения в базу данных
+            // Сохраняем изображения в базу данных с lastUpdated = 0
             val imagesWithTimestamp = response.map {
-                it.copy(lastUpdated = System.currentTimeMillis())
+                it.copy(lastUpdated = 0L)
             }
+
+            // ВСТАВЛЯЕМ ИЗОБРАЖЕНИЯ В БАЗУ ДАННЫХ
             imageDao.insertAll(imagesWithTimestamp)
 
+            // ПОЛУЧАЕМ ДАННЫЕ ИЗ БАЗЫ, ЧТОБЫ ОНИ БЫЛИ СИНХРОНИЗИРОВАНЫ
+            val imagesFromDb = withContext(Dispatchers.IO) {
+                response.mapNotNull { apiImage ->
+                    imageDao.getImageById(apiImage.id) ?: apiImage.copy(lastUpdated = 0L)
+                }
+            }
+
             LoadResult.Page(
-                data = response,
+                data = imagesFromDb, // ИСПОЛЬЗУЕМ ДАННЫЕ ИЗ БАЗЫ
                 prevKey = if (page == 0) null else page - 1,
                 nextKey = page + 1
             )

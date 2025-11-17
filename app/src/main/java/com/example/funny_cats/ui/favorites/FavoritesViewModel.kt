@@ -7,6 +7,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.funny_cats.data.local.CatDatabase
+import com.example.funny_cats.data.local.model.CatImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -19,13 +20,15 @@ class FavoritesViewModel @Inject constructor(
 
     private val imageDao = database.catImageDao()
 
-    val favoriteImagesPaging: Flow<PagingData<com.example.funny_cats.data.local.model.CatImage>> =
+    // ЯВНО УКАЗЫВАЕМ ТИПЫ ДЛЯ PAGING DATA
+    val favoriteImagesPaging: Flow<PagingData<CatImage>> =
         Pager(
             config = PagingConfig(
                 pageSize = 10,
                 enablePlaceholders = false
             )
         ) {
+            // ЯВНО УКАЗЫВАЕМ ТИП PAGING SOURCE
             imageDao.getFavoriteImagesPagingSource()
         }.flow.cachedIn(viewModelScope)
 

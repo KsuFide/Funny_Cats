@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentHomeBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,6 +68,13 @@ class HomeFragment : Fragment() {
                 showDeleteConfirmationDialog(catImage)
             } else {
                 showToast("Нажмите на сердечко, чтобы добавить в избранное")
+            }
+        }
+
+        // ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ПРИ ПОЯВЛЕНИИ ИЗОБРАЖЕНИЯ НА ЭКРАНЕ
+        adapter.onImageVisible = { catImage ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.updateViewTime(catImage.id)
             }
         }
 

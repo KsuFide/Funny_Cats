@@ -55,16 +55,17 @@ class FavoritesFragment : Fragment() {
         adapter.onFavoriteClick = { catImage, isFavorite ->
             viewLifecycleOwner.lifecycleScope.launch {
                 if (!isFavorite) {
-                    // Удаление из избранного
                     viewModel.toggleImageFavorite(catImage.id, false)
                     showToast("Удалено из избранного")
-                    // ОБНОВЛЯЕМ СПИСОК ПОСЛЕ УДАЛЕНИЯ
-                    adapter.refresh()
+                    // Обновляем список после небольшой задержки для обновления БД
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        kotlinx.coroutines.delay(500)
+                        adapter.refresh()
+                    }
                 }
             }
         }
 
-        // Долгое нажатие для удаления
         adapter.onImageLongClick = { catImage ->
             showDeleteConfirmationDialog(catImage)
         }
@@ -81,8 +82,11 @@ class FavoritesFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.toggleImageFavorite(catImage.id, false)
                     showToast("Удалено из избранного")
-                    // ОБНОВЛЯЕМ СПИСОК ПОСЛЕ УДАЛЕНИЯ
-                    adapter.refresh()
+                    // Обновляем список после удаления
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        kotlinx.coroutines.delay(500)
+                        adapter.refresh()
+                    }
                 }
                 dialog.dismiss()
             }
@@ -128,11 +132,14 @@ class FavoritesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Обновляем данные при каждом открытии фрагмента
         adapter.refresh()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Очищаем кэш адаптера для избежания утечек памяти
+        adapter.clearCache()
         _binding = null
     }
 }

@@ -39,6 +39,7 @@ class HistoryFragment : Fragment() {
         setupRecyclerView()
         observeData()
         setupSwipeRefresh()
+        setupClearHistoryButton()
     }
 
     private fun setupRecyclerView() {
@@ -82,9 +83,11 @@ class HistoryFragment : Fragment() {
                     binding.textEmpty.visibility = View.VISIBLE
                     binding.textEmpty.text = "История просмотров пуста\n\n📸 Смотрите котиков в главной ленте, и они появятся здесь!"
                     binding.recyclerViewHistory.visibility = View.GONE
+                    binding.buttonClearHistory.visibility = View.GONE
                 } else {
                     binding.textEmpty.visibility = View.GONE
                     binding.recyclerViewHistory.visibility = View.VISIBLE
+                    binding.buttonClearHistory.visibility = View.VISIBLE
                 }
             }
         }
@@ -94,6 +97,32 @@ class HistoryFragment : Fragment() {
         binding.swipeRefresh.setOnRefreshListener {
             adapter.refresh()
         }
+    }
+
+    private fun setupClearHistoryButton() {
+        binding.buttonClearHistory.setOnClickListener {
+            showClearHistoryConfirmation()
+        }
+    }
+
+    private fun showClearHistoryConfirmation() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Очистить историю")
+            .setMessage("Вы уверены, что хотите очистить всю историю просмотров?")
+            .setPositiveButton("Очистить") { dialog, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.clearHistory()
+                    adapter.refresh()
+                    showToast("История очищена")
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {

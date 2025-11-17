@@ -1,11 +1,13 @@
 package com.example.funny_cats.data.repository
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.CatImage
+import com.example.funny_cats.data.paging.RandomCatsPagingSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -15,7 +17,7 @@ class CatImageRepository @Inject constructor(
 
     private val dao = database.catImageDao()
 
-    // Пагинация для всех изображений
+    // Пагинация для всех изображений - ИСПОЛЬЗУЕМ PAGING SOURCE КОТОРЫЙ РАБОТАЕТ С БАЗОЙ
     fun getImagesPaging(): Flow<PagingData<CatImage>> {
         return Pager(
             config = PagingConfig(
@@ -24,48 +26,31 @@ class CatImageRepository @Inject constructor(
                 maxSize = 100
             ),
             pagingSourceFactory = {
-                dao.getPagingSource()
+                RandomCatsPagingSource(database)
             }
         ).flow
     }
 
-    // Пагинация для избранных изображений
-    fun getFavoriteImagesPaging(): Flow<PagingData<CatImage>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 10,
-                enablePlaceholders = false,
-                maxSize = 100
-            ),
-            pagingSourceFactory = {
-                dao.getFavoriteImagesPagingSource()
-            }
-        ).flow
-    }
-
-    // Загрузка случайных изображений из API
     suspend fun refreshRandomImages(limit: Int = 10) {
         try {
             val imagesFromApi = RetrofitInstance.api.getRandomCats(limit)
-            // Добавляем временную метку для сортировки
             val imagesWithTimestamp = imagesFromApi.map { it.copy(lastUpdated = System.currentTimeMillis()) }
             dao.insertAll(imagesWithTimestamp)
+            Log.d("CatImageRepository", "Successfully refreshed $limit random images")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("CatImageRepository", "Failed to refresh random images: ${e.message}", e)
+            // Не падаем, просто логируем ошибку
         }
     }
 
-    // Загрузка изображений породы
     suspend fun loadBreedImages(breedId: String, limit: Int = 8): List<CatImage> {
         return try {
             val imagesFromApi = RetrofitInstance.api.getBreedImages(breedId, limit)
 
-            // Для каждого изображения проверяем состояние в базе
             val imagesWithFavoriteStatus = mutableListOf<CatImage>()
             for (apiImage in imagesFromApi) {
                 val imageFromDb = dao.getImageById(apiImage.id)
                 val isFavorite = imageFromDb?.isInFavorites ?: false
-                // Сохраняем изображение в базу с правильным состоянием избранного
                 val imageToSave = apiImage.copy(
                     isInFavorites = isFavorite,
                     lastUpdated = System.currentTimeMillis()
@@ -74,29 +59,47 @@ class CatImageRepository @Inject constructor(
                 imagesWithFavoriteStatus.add(imageToSave)
             }
 
+            Log.d("CatImageRepository", "Successfully loaded ${imagesWithFavoriteStatus.size} breed images")
             imagesWithFavoriteStatus
         } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+            Log.e("CatImageRepository", "Failed to load breed images for breed $breedId: ${e.message}", e)
+            emptyList() // Возвращаем пустой список вместо падения
         }
     }
 
-    // Обновление статуса избранного
     suspend fun toggleFavorite(imageId: String, isFavorite: Boolean) {
-        dao.updateFavoriteStatus(imageId, isFavorite)
+        try {
+            dao.updateFavoriteStatus(imageId, isFavorite)
+            Log.d("CatImageRepository", "Updated favorite status for image $imageId to $isFavorite")
+        } catch (e: Exception) {
+            Log.e("CatImageRepository", "Failed to toggle favorite for image $imageId: ${e.message}", e)
+            throw e // Пробрасываем исключение, так как это критическая операция
+        }
     }
 
-    // Получение изображения по ID
     suspend fun getImageById(imageId: String): CatImage? {
-        return dao.getImageById(imageId)
+        return try {
+            dao.getImageById(imageId)
+        } catch (e: Exception) {
+            Log.e("CatImageRepository", "Failed to get image by id $imageId: ${e.message}", e)
+            null
+        }
     }
 
     suspend fun updateViewTime(imageId: String) {
-        dao.updateViewTime(imageId, System.currentTimeMillis())
+        try {
+            dao.updateViewTime(imageId, System.currentTimeMillis())
+        } catch (e: Exception) {
+            Log.e("CatImageRepository", "Failed to update view time for image $imageId: ${e.message}", e)
+        }
     }
 
-    // Очистка кэша
     suspend fun clearCache() {
-        dao.clearAll()
+        try {
+            dao.clearAll()
+            Log.d("CatImageRepository", "Successfully cleared image cache")
+        } catch (e: Exception) {
+            Log.e("CatImageRepository", "Failed to clear cache: ${e.message}", e)
+        }
     }
 }

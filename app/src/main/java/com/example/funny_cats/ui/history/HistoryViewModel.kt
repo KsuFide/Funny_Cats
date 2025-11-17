@@ -7,6 +7,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.funny_cats.data.local.CatDatabase
+import com.example.funny_cats.data.local.model.CatImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -19,7 +20,8 @@ class HistoryViewModel @Inject constructor(
 
     private val imageDao = database.catImageDao()
 
-    val historyImagesPaging: Flow<PagingData<com.example.funny_cats.data.local.model.CatImage>> =
+    // ЯВНО УКАЗЫВАЕМ ТИПЫ ДЛЯ PAGING DATA
+    val historyImagesPaging: Flow<PagingData<CatImage>> =
         Pager(
             config = PagingConfig(
                 pageSize = 10,
@@ -32,6 +34,13 @@ class HistoryViewModel @Inject constructor(
     fun toggleImageFavorite(imageId: String, isFavorite: Boolean) {
         viewModelScope.launch {
             imageDao.updateFavoriteStatus(imageId, isFavorite)
+        }
+    }
+
+    // Очистка истории просмотров
+    fun clearHistory() {
+        viewModelScope.launch {
+            imageDao.clearViewHistory()
         }
     }
 }

@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.funny_cats.R
 import com.example.funny_cats.data.local.model.CatImage
@@ -14,9 +15,11 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
     var onImageClick: ((CatImage) -> Unit)? = null
     var onFavoriteClick: ((CatImage, Boolean) -> Unit)? = null
     var onImageLongClick: ((CatImage) -> Unit)? = null
+    var onImageVisible: ((CatImage) -> Unit)? = null
 
     // Кэш для хранения состояния избранного (на время сессии)
     private val favoriteStateCache = mutableMapOf<String, Boolean>()
+    private val viewedImages = mutableSetOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -28,7 +31,14 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
         catImage?.let { image ->
             // Используем кэшированное состояние если есть, иначе из данных
             val isFavorite = favoriteStateCache[image.id] ?: image.isInFavorites
-            holder.bind(image.copy(isInFavorites = isFavorite))
+            val imageToShow = image.copy(isInFavorites = isFavorite)
+            holder.bind(imageToShow)
+
+            // ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ПРИ ПОЯВЛЕНИИ ИЗОБРАЖЕНИЯ НА ЭКРАНЕ
+            if (!viewedImages.contains(image.id)) {
+                onImageVisible?.invoke(imageToShow)
+                viewedImages.add(image.id)
+            }
         }
     }
 
@@ -47,10 +57,11 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
     // Очищаем кэш при уничтожении адаптера
     fun clearCache() {
         favoriteStateCache.clear()
+        viewedImages.clear()
     }
 
     inner class CatImageViewHolder(private val binding: ItemCatImageBinding) :
-        androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(catImage: CatImage) {
             Glide.with(binding.root)
