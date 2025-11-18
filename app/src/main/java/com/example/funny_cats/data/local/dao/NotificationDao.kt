@@ -24,4 +24,8 @@ interface NotificationDao {
 
     @Query("DELETE FROM notification_settings")
     suspend fun clearAll()
+
+    // Проверяем, есть ли уже настройки
+    @Query("SELECT COUNT(*) FROM notification_settings")
+    suspend fun getSettingsCount(): Int
 }

@@ -50,6 +50,11 @@ class HomeFragment : Fragment() {
         adapter = HomePagingAdapter()
 
         adapter.onImageClick = { catImage ->
+            // ТЕПЕРЬ ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ТОЛЬКО ПРИ КЛИКЕ (переходе в детали)
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.updateViewTime(catImage.id)
+            }
+
             val bundle = Bundle().apply {
                 putString("image_url", catImage.url)
                 putString("image_id", catImage.id)
@@ -71,16 +76,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ПРИ ПОЯВЛЕНИИ ИЗОБРАЖЕНИЯ НА ЭКРАНЕ
-        adapter.onImageVisible = { catImage ->
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.updateViewTime(catImage.id)
-            }
-        }
-
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerView.adapter = adapter
     }
+
 
     // Наблюдатель за изменениями избранного
     private fun setupFavoriteUpdatesObserver() {

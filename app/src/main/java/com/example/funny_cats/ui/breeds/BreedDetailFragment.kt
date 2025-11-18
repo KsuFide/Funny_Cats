@@ -18,6 +18,7 @@ import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.model.CatBreed
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.databinding.FragmentBreedDetailBinding
+import com.example.funny_cats.ui.history.BreedHistoryViewModel
 import com.example.funny_cats.util.RussianTranslator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -29,6 +30,7 @@ class BreedDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: BreedImagesAdapter
     private var currentBreedId: String? = null
+    private val breedHistoryViewModel: BreedHistoryViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentBreedDetailBinding.inflate(inflater, container, false)
@@ -40,7 +42,9 @@ class BreedDetailFragment : Fragment() {
 
         // Получаем breedId из аргументов
         currentBreedId = arguments?.getString("breedId")
-        currentBreedId?.let { loadBreedDetails(it) }
+        currentBreedId?.let { breedId ->
+            loadBreedDetails(breedId)
+        }
 
         setupImageRecyclerView()
     }
@@ -49,7 +53,6 @@ class BreedDetailFragment : Fragment() {
         adapter = BreedImagesAdapter()
 
         adapter.onImageClick = { catImage ->
-            // Безопасный переход к деталям изображения
             try {
                 val bundle = Bundle().apply {
                     putString("image_url", catImage.url)
@@ -72,22 +75,41 @@ class BreedDetailFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 binding.progressBar.visibility = View.VISIBLE
+                binding.textBreedDetail.text = "🐱 Загружаем информацию о породе..."
 
                 val breeds = RetrofitInstance.api.getAllBreeds()
                 val breed = breeds.find { it.id == breedId }
 
                 breed?.let {
+                    // СОХРАНЯЕМ ПОРОДУ В БАЗУ И ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА
+                    saveBreedAndUpdateHistory(it)
+
                     displayBreedInfo(it)
                     loadBreedImages(it.id)
                 } ?: run {
                     binding.textBreedDetail.text = "❌ Порода не найдена"
+                    binding.progressBar.visibility = View.GONE
                 }
 
             } catch (e: Exception) {
                 binding.textBreedDetail.text = "❌ Ошибка загрузки информации о породе: ${e.message}"
-            } finally {
                 binding.progressBar.visibility = View.GONE
             }
+        }
+    }
+
+    private suspend fun saveBreedAndUpdateHistory(breed: CatBreed) {
+        try {
+            // Сохраняем породу в базу
+            breedHistoryViewModel.saveBreedToDatabase(breed)
+
+            // Даем время на сохранение в базу
+            kotlinx.coroutines.delay(100)
+
+            // Обновляем время просмотра
+            breedHistoryViewModel.updateBreedViewTime(breed.id)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -108,6 +130,9 @@ class BreedDetailFragment : Fragment() {
                 binding.textBreedDetail.append("\n\n❌ Не удалось загрузить изображения")
                 binding.textImagesTitle.visibility = View.GONE
                 binding.recyclerViewBreedImages.visibility = View.GONE
+            } finally {
+                // ВСЕГДА СКРЫВАЕМ ПРОГРЕСС-БАР ПОСЛЕ ЗАГРУЗКИ ИЗОБРАЖЕНИЙ
+                binding.progressBar.visibility = View.GONE
             }
         }
     }

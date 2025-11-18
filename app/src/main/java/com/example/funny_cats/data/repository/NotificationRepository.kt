@@ -1,17 +1,28 @@
 package com.example.funny_cats.data.repository
 
 import android.content.Context
-import android.util.Log
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
+import androidx.work.*
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.NotificationSetting
 import com.example.funny_cats.worker.CatNotificationWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
+// Модели данных для статистики (объявляем один раз)
+data class WeeklyStats(
+    val imagesViewed: Int,
+    val favoritesAdded: Int,
+    val breedsDiscovered: Int,
+    val timeSpent: String
+)
+
+data class DailyStats(
+    val imagesViewedToday: Int,
+    val dailyGoal: Int
+)
 
 class NotificationRepository @Inject constructor(
     private val database: CatDatabase,
@@ -24,23 +35,16 @@ class NotificationRepository @Inject constructor(
         return dao.getAllSettings()
     }
 
-    suspend fun getSettingById(settingId: String): NotificationSetting? {
-        return dao.getSettingById(settingId)
-    }
-
     suspend fun updateSetting(setting: NotificationSetting) {
         dao.updateSetting(setting)
     }
 
-    suspend fun updateEnabledStatus(settingId: String, isEnabled: Boolean) {
-        dao.updateEnabledStatus(settingId, isEnabled)
-    }
-
-    // Инициализация начальных настроек
+    // Инициализация начальных настроек - УЛУЧШЕННАЯ ВЕРСИЯ
     suspend fun initializeDefaultSettings() {
-        val dailySetting = dao.getSettingById(NotificationSetting.DAILY_REMINDER_ID)
+        // Проверяем, есть ли уже настройки
+        val settingsCount = dao.getSettingsCount()
 
-        if (dailySetting == null) {
+        if (settingsCount == 0) {
             val defaultSettings = listOf(
                 NotificationSetting(
                     id = NotificationSetting.DAILY_REMINDER_ID,
@@ -81,48 +85,6 @@ class NotificationRepository @Inject constructor(
             defaultSettings.forEach { setting ->
                 dao.insertSetting(setting)
             }
-            Log.d("NotificationRepository", "Default notification settings initialized")
-        }
-    }
-
-    // Отправка тестового уведомления - ПРОСТАЯ ВЕРСИЯ
-    fun sendTestNotification(settingId: String) {
-        try {
-            val (title, message) = when (settingId) {
-                NotificationSetting.DAILY_REMINDER_ID ->
-                    Pair("🐱 Тест: Ежедневное напоминание", "Сегодня вы посмотрели 5 котиков. Посмотрите ещё 5 чтобы достичь цели!")
-
-                NotificationSetting.INACTIVITY_REMINDER_ID ->
-                    Pair("😿 Тест: Напоминание о неактивности", "Вы не заходили 3 дня. Новые котики ждут!")
-
-                NotificationSetting.WEEKLY_SUMMARY_ID ->
-                    Pair("📊 Тест: Недельная статистика", "За неделю: 42 котика, 7 в избранном, 3 новые породы")
-
-                NotificationSetting.NEW_BREEDS_ID ->
-                    Pair("🎉 Тест: Новые породы", "Добавлено 5 новых пород кошек!")
-
-                NotificationSetting.FAVORITE_REMINDER_ID ->
-                    Pair("❤️ Тест: Избранное", "Вспомните ваших любимых котиков!")
-
-                else -> Pair("Тестовое уведомление", "Проверка работы уведомлений")
-            }
-
-            Log.d("NotificationRepository", "Sending test notification: $title - $message")
-
-            // ПРОСТОЙ ВЫЗОВ через WorkManager
-            val workRequest = OneTimeWorkRequestBuilder<CatNotificationWorker>()
-                .setInputData(workDataOf(
-                    "title" to title,
-                    "message" to message
-                ))
-                .setInitialDelay(0, TimeUnit.SECONDS) // Немедленно
-                .build()
-
-            WorkManager.getInstance(context).enqueue(workRequest)
-            Log.d("NotificationRepository", "WorkManager request enqueued successfully")
-
-        } catch (e: Exception) {
-            Log.e("NotificationRepository", "Failed to send test notification: ${e.message}", e)
         }
     }
 
@@ -198,8 +160,8 @@ class NotificationRepository @Inject constructor(
     // Недельная статистика
     private suspend fun checkWeeklySummary() {
         // Проверяем, что сегодня воскресенье
-        val calendar = java.util.Calendar.getInstance()
-        if (calendar.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY) {
+        val calendar = Calendar.getInstance()
+        if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
             val weeklyStats = getWeeklyStats()
             sendWeeklySummary(weeklyStats)
         }
@@ -262,13 +224,48 @@ class NotificationRepository @Inject constructor(
         WorkManager.getInstance(context).enqueue(workRequest)
     }
 
-    // Получение времени последней активности пользователя
-    private suspend fun getLastUserActivity(): Long {
-        val images = database.catImageDao().getAllImages().first()
-        return images.maxByOrNull { it.lastUpdated }?.lastUpdated ?: 0L
+    // Тестовые уведомления для каждого типа
+    fun sendTestNotification(settingId: String) {
+        val (title, message) = when (settingId) {
+            NotificationSetting.DAILY_REMINDER_ID ->
+                Pair("🐱 Тест: Ежедневное напоминание", "Сегодня вы посмотрели 5 котиков. Посмотрите ещё 5 чтобы достичь цели!")
+
+            NotificationSetting.INACTIVITY_REMINDER_ID ->
+                Pair("😿 Тест: Напоминание о неактивности", "Вы не заходили 3 дня. Новые котики ждут!")
+
+            NotificationSetting.WEEKLY_SUMMARY_ID ->
+                Pair("📊 Тест: Недельная статистика", "За неделю: 42 котика, 7 в избранном, 3 новые породы")
+
+            NotificationSetting.NEW_BREEDS_ID ->
+                Pair("🎉 Тест: Новые породы", "Добавлено 5 новых пород кошек!")
+
+            NotificationSetting.FAVORITE_REMINDER_ID ->
+                Pair("❤️ Тест: Избранное", "Вспомните ваших любимых котиков!")
+
+            else -> Pair("Тестовое уведомление", "Проверка работы уведомлений")
+        }
+
+        val workRequest = OneTimeWorkRequestBuilder<CatNotificationWorker>()
+            .setInputData(workDataOf("title" to title, "message" to message))
+            .setInitialDelay(1, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(workRequest)
     }
 
-    // Временные методы для статистики (заглушки)
+    // Получение времени последней активности пользователя
+    private suspend fun getLastUserActivity(): Long {
+        // Проверяем активность как в породах, так и в изображениях
+        val breeds = database.catBreedDao().getAllBreeds().first()
+        val images = database.catImageDao().getAllImages().first()
+
+        val lastBreedView = breeds.maxByOrNull { it.lastViewed }?.lastViewed ?: 0L
+        val lastImageUpdate = images.maxByOrNull { it.lastUpdated }?.lastUpdated ?: 0L
+
+        return maxOf(lastBreedView, lastImageUpdate)
+    }
+
+    // Временные заглушки для статистики
     private suspend fun getWeeklyStats(): WeeklyStats {
         return WeeklyStats(
             imagesViewed = (20..50).random(),
@@ -284,21 +281,4 @@ class NotificationRepository @Inject constructor(
             dailyGoal = 10
         )
     }
-
-    suspend fun clearAll() {
-        dao.clearAll()
-    }
 }
-
-// Модели данных для статистики
-data class WeeklyStats(
-    val imagesViewed: Int,
-    val favoritesAdded: Int,
-    val breedsDiscovered: Int,
-    val timeSpent: String
-)
-
-data class DailyStats(
-    val imagesViewedToday: Int,
-    val dailyGoal: Int
-)

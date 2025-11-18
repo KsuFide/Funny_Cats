@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.funny_cats.data.local.converters.ListConverters
 import com.example.funny_cats.data.local.dao.AppSettingsDao
@@ -15,12 +16,10 @@ import com.example.funny_cats.data.local.model.AppSettings
 import com.example.funny_cats.data.local.model.CatBreedEntity
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.data.local.model.NotificationSetting
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Database(
     entities = [CatBreedEntity::class, CatImage::class, NotificationSetting::class, AppSettings::class],
-    version = 6, // Увеличиваем версию для миграции
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(ListConverters::class)
@@ -42,29 +41,19 @@ abstract class CatDatabase : RoomDatabase() {
                     CatDatabase::class.java,
                     "cat_database"
                 )
-                    .fallbackToDestructiveMigration()
-                    .addCallback(object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            // Создаем индексы для ускорения запросов
-                            db.execSQL("CREATE INDEX index_cat_images_favorites ON cat_images(isInFavorites)")
-                            db.execSQL("CREATE INDEX index_cat_images_last_updated ON cat_images(lastUpdated)")
-                            db.execSQL("CREATE INDEX index_cat_breeds_name ON cat_breeds(name)")
-                            db.execSQL("CREATE INDEX index_cat_breeds_favorites ON cat_breeds(isInFavorites)")
-                        }
-                    })
+                    .addMigrations(MIGRATION_5_6) // ИСПОЛЬЗУЕМ МИГРАЦИЮ ВМЕСТО УДАЛЕНИЯ
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        // Метод для тестирования
-        fun getTestInstance(context: Context): CatDatabase {
-            return Room.inMemoryDatabaseBuilder(
-                context.applicationContext,
-                CatDatabase::class.java
-            ).build()
+        // Миграция с версии 5 на 6 - добавляем поле lastViewed
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Добавляем новое поле lastViewed в таблицу cat_breeds
+                database.execSQL("ALTER TABLE cat_breeds ADD COLUMN lastViewed INTEGER NOT NULL DEFAULT 0")
+            }
         }
     }
 }

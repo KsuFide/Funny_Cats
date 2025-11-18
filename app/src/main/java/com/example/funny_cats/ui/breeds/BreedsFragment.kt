@@ -24,9 +24,6 @@ class BreedsFragment : Fragment() {
     private val viewModel: BreedsViewModel by viewModels()
     private lateinit var adapter: BreedsAdapter
 
-    // Флаг для отслеживания, нужно ли сбросить состояние
-    private var shouldResetState = true
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,44 +40,14 @@ class BreedsFragment : Fragment() {
         setupSearchView()
         setupObservers()
 
-        // Сбрасываем состояние при каждом создании View
-        resetFragmentState()
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        // Сбрасываем состояние при возврате на фрагмент
-        if (shouldResetState) {
-            resetFragmentState()
+        // Загружаем породы только если их нет в базе
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.loadBreedsIfNeeded()
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Устанавливаем флаг, что при следующем возврате нужно сбросить состояние
-        shouldResetState = true
-    }
-
-    private fun resetFragmentState() {
-        // Сбрасываем поиск
-        binding.searchView.setQuery("", false)
-
-        // Сбрасываем скролл
-        binding.recyclerViewBreeds.scrollToPosition(0)
-
-        // Обновляем данные
-        viewModel.loadBreeds()
-
-        // Сбрасываем флаг
-        shouldResetState = false
     }
 
     private fun setupRecyclerView() {
         adapter = BreedsAdapter { breed ->
-            // При переходе в детали устанавливаем флаг, что не нужно сбрасывать состояние
-            shouldResetState = false
-
             val bundle = Bundle().apply {
                 putString("breedId", breed.id)
             }

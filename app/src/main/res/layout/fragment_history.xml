@@ -16,6 +16,46 @@
         android:padding="16dp"
         android:textColor="#333333" />
 
+    <!-- Табы для переключения между типами истории -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/tabAll"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="Все"
+            android:background="@drawable/tab_selector"
+            android:textColor="@color/tab_text_selector" />
+
+        <Button
+            android:id="@+id/tabBreeds"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="Породы"
+            android:background="@drawable/tab_selector"
+            android:textColor="@color/tab_text_selector" />
+
+        <Button
+            android:id="@+id/tabImages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="Изображения"
+            android:background="@drawable/tab_selector"
+            android:textColor="@color/tab_text_selector" />
+
+    </LinearLayout>
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"

@@ -15,11 +15,11 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
     var onImageClick: ((CatImage) -> Unit)? = null
     var onFavoriteClick: ((CatImage, Boolean) -> Unit)? = null
     var onImageLongClick: ((CatImage) -> Unit)? = null
-    var onImageVisible: ((CatImage) -> Unit)? = null
+    // УБИРАЕМ автоматическое добавление в историю при просмотре в ленте
+    // var onImageVisible: ((CatImage) -> Unit)? = null
 
     // Кэш для хранения состояния избранного (на время сессии)
     private val favoriteStateCache = mutableMapOf<String, Boolean>()
-    private val viewedImages = mutableSetOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -34,11 +34,8 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
             val imageToShow = image.copy(isInFavorites = isFavorite)
             holder.bind(imageToShow)
 
-            // ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ПРИ ПОЯВЛЕНИИ ИЗОБРАЖЕНИЯ НА ЭКРАНЕ
-            if (!viewedImages.contains(image.id)) {
-                onImageVisible?.invoke(imageToShow)
-                viewedImages.add(image.id)
-            }
+            // УБИРАЕМ автоматическое обновление времени просмотра
+            // Теперь изображения добавляются в историю только при клике
         }
     }
 
@@ -57,7 +54,6 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
     // Очищаем кэш при уничтожении адаптера
     fun clearCache() {
         favoriteStateCache.clear()
-        viewedImages.clear()
     }
 
     inner class CatImageViewHolder(private val binding: ItemCatImageBinding) :

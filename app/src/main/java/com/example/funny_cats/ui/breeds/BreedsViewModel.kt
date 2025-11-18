@@ -30,16 +30,17 @@ class BreedsViewModel @Inject constructor(
         }
     }.cachedIn(viewModelScope)
 
-    fun loadBreeds() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                repository.refreshBreeds()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                _isLoading.value = false
-            }
+    // Загружаем породы только если их нет
+    suspend fun loadBreedsIfNeeded() {
+        // Здесь можно добавить проверку, есть ли породы в базе
+        // Если нет - загружаем
+        _isLoading.value = true
+        try {
+            repository.refreshBreeds()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            _isLoading.value = false
         }
     }
 
