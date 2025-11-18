@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.funny_cats.R
 import com.example.funny_cats.data.local.model.CatImage
@@ -13,6 +14,12 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
 
     var onImageClick: ((CatImage) -> Unit)? = null
     var onFavoriteClick: ((CatImage, Boolean) -> Unit)? = null
+    var onImageLongClick: ((CatImage) -> Unit)? = null
+    // УБИРАЕМ автоматическое добавление в историю при просмотре в ленте
+    // var onImageVisible: ((CatImage) -> Unit)? = null
+
+    // Кэш для хранения состояния избранного (на время сессии)
+    private val favoriteStateCache = mutableMapOf<String, Boolean>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatImageViewHolder {
         val binding = ItemCatImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -21,42 +28,71 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
 
     override fun onBindViewHolder(holder: CatImageViewHolder, position: Int) {
         val catImage = getItem(position)
-        holder.bind(catImage)
+        catImage?.let { image ->
+            // Используем кэшированное состояние если есть, иначе из данных
+            val isFavorite = favoriteStateCache[image.id] ?: image.isInFavorites
+            val imageToShow = image.copy(isInFavorites = isFavorite)
+            holder.bind(imageToShow)
+
+            // УБИРАЕМ автоматическое обновление времени просмотра
+            // Теперь изображения добавляются в историю только при клике
+        }
     }
 
-    // Метод для обновления состояния избранного в определенной позиции
+    // Метод для обновления состояния избранного конкретного элемента
     fun updateFavoriteState(imageId: String, isFavorite: Boolean) {
+        favoriteStateCache[imageId] = isFavorite
+        // Находим позицию элемента и обновляем его
         snapshot().items.forEachIndexed { index, catImage ->
             if (catImage.id == imageId) {
-                val updatedImage = catImage.copy(isInFavorites = isFavorite)
-                // Обновляем элемент в списке
                 notifyItemChanged(index)
                 return
             }
         }
     }
 
+    // Очищаем кэш при уничтожении адаптера
+    fun clearCache() {
+        favoriteStateCache.clear()
+    }
+
     inner class CatImageViewHolder(private val binding: ItemCatImageBinding) :
-        androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(catImage: CatImage?) {
-            catImage?.let { image ->
-                Glide.with(binding.root)
-                    .load(image.url)
-                    .centerCrop()
-                    .into(binding.imageView)
+        fun bind(catImage: CatImage) {
+            Glide.with(binding.root)
+                .load(catImage.url)
+                .centerCrop()
+                .into(binding.imageView)
 
-                updateFavoriteIcon(image.isInFavorites)
+            updateFavoriteIcon(catImage.isInFavorites)
 
-                binding.favoriteButton.setOnClickListener {
-                    val newFavoriteState = !image.isInFavorites
-                    onFavoriteClick?.invoke(image, newFavoriteState)
-                    updateFavoriteIcon(newFavoriteState)
-                }
+            // Обработчик клика по кнопке избранного
+            binding.favoriteButton.setOnClickListener {
+                val newFavoriteState = !catImage.isInFavorites
+                onFavoriteClick?.invoke(catImage, newFavoriteState)
+                updateFavoriteIcon(newFavoriteState)
 
-                binding.imageView.setOnClickListener {
-                    onImageClick?.invoke(image)
-                }
+                // Сохраняем состояние в кэш
+                favoriteStateCache[catImage.id] = newFavoriteState
+
+                val message = if (newFavoriteState) "Добавлено в избранное! ❤️" else "Удалено из избранного"
+                showToast(message)
+            }
+
+            binding.imageView.setOnClickListener {
+                onImageClick?.invoke(catImage)
+            }
+
+            // Долгое нажатие для быстрого удаления
+            binding.imageView.setOnLongClickListener {
+                onImageLongClick?.invoke(catImage)
+                true
+            }
+
+            binding.favoriteButton.setOnLongClickListener {
+                onImageLongClick?.invoke(catImage)
+                true
             }
         }
 
@@ -67,6 +103,13 @@ class HomePagingAdapter : PagingDataAdapter<CatImage, HomePagingAdapter.CatImage
                 R.drawable.ic_favorite_border
             }
             binding.favoriteButton.setImageResource(icon)
+
+            binding.favoriteButton.contentDescription =
+                if (isFavorite) "Удалить из избранного" else "Добавить в избранное"
+        }
+
+        private fun showToast(message: String) {
+            android.widget.Toast.makeText(binding.root.context, message, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 

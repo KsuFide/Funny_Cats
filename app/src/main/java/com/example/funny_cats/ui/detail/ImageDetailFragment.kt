@@ -28,6 +28,7 @@ class ImageDetailFragment : Fragment() {
     private val viewModel: HomeViewModel by viewModels()
     private lateinit var currentImage: CatImage
     private var isFavorite: Boolean = false
+    private var isFromBreedDetail: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +45,9 @@ class ImageDetailFragment : Fragment() {
         val imageUrl = arguments?.getString("image_url") ?: ""
         val imageId = arguments?.getString("image_id") ?: ""
 
+        // Проверяем, открыто ли из деталей породы
+        isFromBreedDetail = arguments?.getString("breed_id") != null
+
         currentImage = CatImage(
             id = imageId,
             url = imageUrl,
@@ -52,18 +56,16 @@ class ImageDetailFragment : Fragment() {
             isInFavorites = false
         )
 
-        // Сохраняем время просмотра
-        saveViewTime()
-
         setupToolbar()
         loadImage()
-        loadFavoriteState()
         setupButtons()
-    }
 
-    private fun saveViewTime() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.updateViewTime(currentImage.id)
+        // Загружаем состояние избранного только если НЕ из деталей породы
+        if (!isFromBreedDetail) {
+            loadFavoriteState()
+        } else {
+            // Если из деталей породы - скрываем кнопку избранного
+            binding.buttonFavorite.visibility = View.GONE
         }
     }
 
@@ -107,6 +109,9 @@ class ImageDetailFragment : Fragment() {
     }
 
     private fun updateFavoriteButton() {
+        // Если кнопка скрыта, ничего не делаем
+        if (binding.buttonFavorite.visibility == View.GONE) return
+
         val icon = if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border
         binding.buttonFavorite.setImageResource(icon)
     }

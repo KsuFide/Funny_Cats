@@ -8,13 +8,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CatImageDao {
 
-    // Для пагинации
+    // Для пагинации - ВСЕ изображения из базы
     @Query("SELECT * FROM cat_images ORDER BY lastUpdated DESC")
     fun getPagingSource(): PagingSource<Int, CatImage>
 
     // Для избранных изображений
     @Query("SELECT * FROM cat_images WHERE isInFavorites = 1 ORDER BY lastUpdated DESC")
     fun getFavoriteImagesPagingSource(): PagingSource<Int, CatImage>
+
+    // Для истории просмотров - ТОЛЬКО изображения с lastUpdated > 0
+    @Query("SELECT * FROM cat_images WHERE lastUpdated > 0 ORDER BY lastUpdated DESC")
+    fun getHistoryPagingSource(): PagingSource<Int, CatImage>
 
     // Обычные методы
     @Query("SELECT * FROM cat_images ORDER BY lastUpdated DESC")
@@ -35,11 +39,11 @@ interface CatImageDao {
     @Query("SELECT * FROM cat_images WHERE id = :imageId")
     suspend fun getImageById(imageId: String): CatImage?
 
-    // Для истории просмотров (сортировка по времени последнего обновления)
-    @Query("SELECT * FROM cat_images WHERE lastUpdated > 0 ORDER BY lastUpdated DESC")
-    fun getHistoryPagingSource(): PagingSource<Int, CatImage>
-
     // Обновляем время просмотра изображения
     @Query("UPDATE cat_images SET lastUpdated = :timestamp WHERE id = :imageId")
     suspend fun updateViewTime(imageId: String, timestamp: Long = System.currentTimeMillis())
+
+    // Очистка истории просмотров
+    @Query("UPDATE cat_images SET lastUpdated = 0")
+    suspend fun clearViewHistory()
 }

@@ -39,11 +39,12 @@ class NotificationRepository @Inject constructor(
         dao.updateSetting(setting)
     }
 
-    // Инициализация начальных настроек
+    // Инициализация начальных настроек - УЛУЧШЕННАЯ ВЕРСИЯ
     suspend fun initializeDefaultSettings() {
-        val dailySetting = dao.getSettingById(NotificationSetting.DAILY_REMINDER_ID)
+        // Проверяем, есть ли уже настройки
+        val settingsCount = dao.getSettingsCount()
 
-        if (dailySetting == null) {
+        if (settingsCount == 0) {
             val defaultSettings = listOf(
                 NotificationSetting(
                     id = NotificationSetting.DAILY_REMINDER_ID,
@@ -254,8 +255,14 @@ class NotificationRepository @Inject constructor(
 
     // Получение времени последней активности пользователя
     private suspend fun getLastUserActivity(): Long {
+        // Проверяем активность как в породах, так и в изображениях
+        val breeds = database.catBreedDao().getAllBreeds().first()
         val images = database.catImageDao().getAllImages().first()
-        return images.maxByOrNull { it.lastUpdated }?.lastUpdated ?: 0L
+
+        val lastBreedView = breeds.maxByOrNull { it.lastViewed }?.lastViewed ?: 0L
+        val lastImageUpdate = images.maxByOrNull { it.lastUpdated }?.lastUpdated ?: 0L
+
+        return maxOf(lastBreedView, lastImageUpdate)
     }
 
     // Временные заглушки для статистики

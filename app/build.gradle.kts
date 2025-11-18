@@ -28,13 +28,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     viewBinding {
         enable = true
     }
@@ -94,10 +97,11 @@ dependencies {
 
     // Для кастомного иконка уведомлений
     implementation("androidx.core:core-ktx:1.12.0")
-    
+
     // Material Design для улучшенных UI компонентов
     implementation("com.google.android.material:material:1.10.0")
 
+    // ТОЛЬКО САМЫЕ БАЗОВЫЕ ТЕСТЫ
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

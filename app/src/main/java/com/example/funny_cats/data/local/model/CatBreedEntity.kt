@@ -19,5 +19,6 @@ data class CatBreedEntity(
     val adaptability: Int?,
     val isInFavorites: Boolean = false,
     val isInWatchLater: Boolean = false,
-    val lastUpdated: Long = System.currentTimeMillis()
+    val lastUpdated: Long = System.currentTimeMillis(),
+    val lastViewed: Long = 0L // Время последнего просмотра породы
 )

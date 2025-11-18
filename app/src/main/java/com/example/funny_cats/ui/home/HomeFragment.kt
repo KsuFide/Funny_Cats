@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentHomeBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,6 +38,7 @@ class HomeFragment : Fragment() {
 
         setupRecyclerView()
         setupPagingObservers()
+        setupFavoriteUpdatesObserver()
 
         binding.textHome.text = "🐱 Загружаем котиков..."
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -48,6 +50,11 @@ class HomeFragment : Fragment() {
         adapter = HomePagingAdapter()
 
         adapter.onImageClick = { catImage ->
+            // ТЕПЕРЬ ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ТОЛЬКО ПРИ КЛИКЕ (переходе в детали)
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.updateViewTime(catImage.id)
+            }
+
             val bundle = Bundle().apply {
                 putString("image_url", catImage.url)
                 putString("image_id", catImage.id)
@@ -58,13 +65,45 @@ class HomeFragment : Fragment() {
         adapter.onFavoriteClick = { catImage, isFavorite ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.toggleImageFavorite(catImage.id, isFavorite)
-                val message = if (isFavorite) "Добавлено в избранное! ❤️" else "Удалено из избранного"
-                android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        adapter.onImageLongClick = { catImage ->
+            if (catImage.isInFavorites) {
+                showDeleteConfirmationDialog(catImage)
+            } else {
+                showToast("Нажмите на сердечко, чтобы добавить в избранное")
             }
         }
 
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerView.adapter = adapter
+    }
+
+
+    // Наблюдатель за изменениями избранного
+    private fun setupFavoriteUpdatesObserver() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.favoriteUpdates.collect { (imageId, isFavorite) ->
+                // Обновляем конкретный элемент в адаптере
+                adapter.updateFavoriteState(imageId, isFavorite)
+            }
+        }
+    }
+
+    private fun showDeleteConfirmationDialog(catImage: com.example.funny_cats.data.local.model.CatImage) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Удалить из избранного")
+            .setMessage("Вы уверены, что хотите удалить этого котика из избранного?")
+            .setPositiveButton("Удалить") { dialog, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.toggleImageFavorite(catImage.id, false)
+                    showToast("Удалено из избранного")
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun setupPagingObservers() {
@@ -99,8 +138,15 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        // Очищаем binding для предотвращения утечек памяти
         _binding = null
+        // Очищаем кэш адаптера
+        adapter.clearCache()
     }
 }

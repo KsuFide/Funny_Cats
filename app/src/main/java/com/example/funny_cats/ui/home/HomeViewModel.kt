@@ -10,6 +10,8 @@ import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.paging.RandomCatsPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,6 +21,10 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val imageDao = database.catImageDao()
+
+    // Flow для уведомления об изменениях избранного
+    private val _favoriteUpdates = MutableSharedFlow<Pair<String, Boolean>>()
+    val favoriteUpdates = _favoriteUpdates.asSharedFlow()
 
     // Пагинация с сохранением в базу
     val catsPagingFlow: Flow<PagingData<com.example.funny_cats.data.local.model.CatImage>> = Pager(
@@ -35,22 +41,20 @@ class HomeViewModel @Inject constructor(
     fun toggleImageFavorite(imageId: String, isFavorite: Boolean) {
         viewModelScope.launch {
             imageDao.updateFavoriteStatus(imageId, isFavorite)
-
-            // Для немедленного обновления UI в избранном
-            // Можно добавить механизм обновления, но пока просто логируем
-            println("DEBUG: Updated favorite status for image $imageId: $isFavorite")
+            // Отправляем уведомление об изменении
+            _favoriteUpdates.emit(Pair(imageId, isFavorite))
         }
     }
 
     // Метод для обновления времени просмотра
     fun updateViewTime(imageId: String) {
         viewModelScope.launch {
-            database.catImageDao().updateViewTime(imageId)
+            imageDao.updateViewTime(imageId)
         }
     }
 
     suspend fun getImageById(imageId: String): com.example.funny_cats.data.local.model.CatImage? {
-        return database.catImageDao().getImageById(imageId)
+        return imageDao.getImageById(imageId)
     }
 
     // Старый метод для обратной совместимости

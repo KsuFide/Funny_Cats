@@ -1,11 +1,63 @@
 <resources>
-    <string name="app_name">Funny_Cats</string>
-    <string name="breeds_not_found">😿 Не найдено пород по вашему запросу</string>
-    <string name="loading_breeds">🐱 Загружаем список пород...</string>
-    <string name="search_hint">Поиск пород кошек</string>
-    <string name="breed_name">Порода</string>
-    <string name="breed_origin">Происхождение</string>
-    <string name="breed_temperament">Характер</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">CatFinder</string>
+
+    <!-- Основные строки -->
+    <string name="search_hint">🔍 Поиск пород…</string>
+    <string name="loading_breeds">🐱 Загружаем список пород…</string>
+
+    <!-- Настройки -->
+    <string name="settings_title">Настройки</string>
+    <string name="content_settings_header">Настройки контента</string>
+    <string name="appearance_header">Внешний вид</string>
+    <string name="notifications_header">Уведомления</string>
+    <string name="experimental_header">Экспериментальные функции</string>
+    <string name="about_header">О приложении</string>
+
+    <!-- Настройки контента -->
+    <string name="random_cats_title">Случайные котики</string>
+    <string name="random_cats_desc">Показывать случайных котиков на главной</string>
+    <string name="breed_images_title">Изображения пород</string>
+    <string name="breed_images_desc">Показывать изображения пород кошек</string>
+    <string name="favorite_breeds_title">Избранные породы</string>
+    <string name="favorite_breeds_desc">Показывать избранные породы на главной</string>
+
+    <!-- Тема -->
+    <string name="theme_title">Тема приложения</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_system">Системная</string>
+
+    <!-- Уведомления -->
+    <string name="notifications_title">Уведомления</string>
+    <string name="notifications_desc">Включить все уведомления</string>
+    <string name="daily_reminders_title">Ежедневные напоминания</string>
+    <string name="daily_reminders_desc">Напоминания посмотреть котиков каждый день</string>
+    <string name="weekly_summary_title">Недельная статистика</string>
+    <string name="weekly_summary_desc">Сводка вашей активности за неделю</string>
+
+    <!-- Jetpack Compose -->
+    <string name="compose_title">Jetpack Compose</string>
+    <string name="compose_desc">Использовать новый UI фреймворк (требует перезапуска)</string>
+
+    <!-- Диалоги -->
+    <string name="restart_dialog_title">Перезапуск приложения</string>
+    <string name="restart_dialog_message">Для применения изменений требуется перезапуск приложения</string>
+    <string name="theme_dialog_title">Выберите тему</string>
+    <string name="ok">OK</string>
+
+    <!-- О приложении -->
+    <string name="version_title">Версия</string>
+    <string name="developer_title">Разработчик</string>
+    <string name="data_source_title">Данные</string>
+    <string name="version_value">1.0.0</string>
+    <string name="developer_value">CatFinder Team</string>
+    <string name="data_source_value">The Cat API</string>
+
+    <!-- Сообщения -->
+    <string name="feature_in_development">Функция в разработке</string>
+    <string name="notifications_disabled">Все уведомления отключены</string>
+    <string name="daily_reminders_enabled">Ежедневные напоминания включены</string>
+    <string name="daily_reminders_disabled">Ежедневные напоминания отключены</string>
+    <string name="weekly_summary_enabled">Недельная статистика включена</string>
+    <string name="weekly_summary_disabled">Недельная статистика отключена</string>
 </resources>

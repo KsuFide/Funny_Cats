@@ -1,41 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Базовые цвета -->
-    <color name="black">#FF000000</color>
+    <!-- Базовая серая палитра -->
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="gray_50">#FFFAFAFA</color>
+    <color name="gray_100">#FFF5F5F5</color>
+    <color name="gray_200">#FFEEEEEE</color>
+    <color name="gray_300">#FFE0E0E0</color>
+    <color name="gray_400">#FFBDBDBD</color>
+    <color name="gray_500">#FF9E9E9E</color>
+    <color name="gray_600">#FF757575</color>
+    <color name="gray_700">#FF616161</color>
+    <color name="gray_800">#FF424242</color>
+    <color name="gray_900">#FF212121</color>
 
-    <!-- Основные цвета темы -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
+    <!-- Старые цвета для совместимости -->
+    <color name="gray">@color/gray_500</color>
+    <color name="dark_gray">@color/gray_700</color>
 
-    <!-- Дополнительные цвета -->
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-
-    <!-- Дополнительные системные цвета -->
-    <color name="purple_200_light">#FFBB86FC</color>
-    <color name="purple_500_light">#FF6200EE</color>
-    <color name="purple_700_light">#FF3700B3</color>
-    <color name="teal_200_light">#FF03DAC5</color>
-    <color name="teal_700_light">#FF018786</color>
-
-    <!-- Темные версии для ночной темы -->
-    <color name="purple_200_dark">#FFBB86FC</color>
-    <color name="purple_500_dark">#FFBB86FC</color>
-    <color name="purple_700_dark">#FF3700B3</color>
-    <color name="teal_200_dark">#FF03DAC5</color>
-    <color name="teal_700_dark">#FF03DAC5</color>
+    <!-- Акцентные цвета -->
+    <color name="accent_blue">#FF2196F3</color>
+    <color name="accent_orange">#FFFF9800</color>
+    <color name="purple_200">#9C27B0</color>
 
     <!-- Фоновые цвета -->
-    <color name="background_light">#FFF5F5F5</color>
-    <color name="background_dark">#FF121212</color>
+    <color name="background_light">@color/gray_50</color>
+    <color name="background_dark">@color/black</color>
+    <color name="surface_light">@color/white</color>
+    <color name="surface_dark">@color/gray_900</color>
 
     <!-- Текстовые цвета -->
-    <color name="text_primary_light">#DE000000</color>
-    <color name="text_primary_dark">#FFFFFFFF</color>
-    <color name="text_secondary_light">#8A000000</color>
-    <color name="text_secondary_dark">#B3FFFFFF</color>
-    <color name="gray">#B36D6D6D</color>
-    <color name="dark_gray">#B32E2E2E</color>
+    <color name="text_primary_light">@color/gray_900</color>
+    <color name="text_primary_dark">@color/white</color>
+    <color name="text_secondary_light">@color/gray_600</color>
+    <color name="text_secondary_dark">@color/gray_400</color>
+    <color name="tab_text_selector">@color/black</color>
+
 </resources>
