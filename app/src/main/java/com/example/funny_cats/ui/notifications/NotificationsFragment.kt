@@ -10,12 +10,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.funny_cats.databinding.FragmentNotificationsBinding
+import com.example.funny_cats.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class NotificationsFragment : Fragment() {
+class NotificationsFragment : BaseFragment() {
 
     private var _binding: FragmentNotificationsBinding? = null
     private val binding get() = _binding!!
@@ -87,6 +88,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding?.recyclerViewNotifications?.adapter = null
         _binding = null
     }
 }

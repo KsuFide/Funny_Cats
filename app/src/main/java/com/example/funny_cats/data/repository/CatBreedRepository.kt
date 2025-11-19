@@ -27,6 +27,7 @@ class CatBreedRepository(private val database: CatDatabase) {
         ).flow
     }
 
+
     fun searchBreedsPaging(query: String): Flow<PagingData<CatBreedEntity>> {
         return Pager(
             config = PagingConfig(

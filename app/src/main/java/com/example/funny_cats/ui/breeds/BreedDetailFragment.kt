@@ -22,9 +22,12 @@ import com.example.funny_cats.ui.history.BreedHistoryViewModel
 import com.example.funny_cats.util.RussianTranslator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import android.util.Log
+import com.example.funny_cats.data.repository.toCatBreed
+import com.example.funny_cats.ui.BaseFragment
 
 @AndroidEntryPoint
-class BreedDetailFragment : Fragment() {
+class BreedDetailFragment : BaseFragment() {
 
     private var _binding: FragmentBreedDetailBinding? = null
     private val binding get() = _binding!!
@@ -40,13 +43,15 @@ class BreedDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Получаем breedId из аргументов
         currentBreedId = arguments?.getString("breedId")
-        currentBreedId?.let { breedId ->
-            loadBreedDetails(breedId)
+
+        if (currentBreedId.isNullOrEmpty()) {
+            showError("Не удалось загрузить информацию о породе")
+            return
         }
 
         setupImageRecyclerView()
+        loadBreedDetails(currentBreedId!!)
     }
 
     private fun setupImageRecyclerView() {
@@ -62,6 +67,7 @@ class BreedDetailFragment : Fragment() {
                 findNavController().navigate(R.id.imageDetailFragment, bundle)
             } catch (e: Exception) {
                 e.printStackTrace()
+                showToast("Ошибка перехода к изображению")
             }
         }
 
@@ -77,36 +83,43 @@ class BreedDetailFragment : Fragment() {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.textBreedDetail.text = "🐱 Загружаем информацию о породе..."
 
-                val breeds = RetrofitInstance.api.getAllBreeds()
+                val breeds = try {
+                    RetrofitInstance.api.getAllBreeds()
+                } catch (e: Exception) {
+                    Log.e("BreedDetail", "Failed to load breeds: ${e.message}")
+                    // Пробуем получить породу из базы данных
+                    val breedFromDb = breedHistoryViewModel.getBreedById(breedId)
+                    if (breedFromDb != null) {
+                        listOf(breedFromDb.toCatBreed())
+                    } else {
+                        emptyList()
+                    }
+                }
+
                 val breed = breeds.find { it.id == breedId }
 
                 breed?.let {
-                    // СОХРАНЯЕМ ПОРОДУ В БАЗУ И ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА
                     saveBreedAndUpdateHistory(it)
-
                     displayBreedInfo(it)
                     loadBreedImages(it.id)
                 } ?: run {
-                    binding.textBreedDetail.text = "❌ Порода не найдена"
+                    binding.textBreedDetail.text = "❌ Порода не найдена\n\nПопробуйте обновить список пород"
                     binding.progressBar.visibility = View.GONE
                 }
 
             } catch (e: Exception) {
-                binding.textBreedDetail.text = "❌ Ошибка загрузки информации о породе: ${e.message}"
+                e.printStackTrace()
+                binding.textBreedDetail.text = "❌ Ошибка загрузки информации о породе\n\nПроверьте подключение к интернету"
                 binding.progressBar.visibility = View.GONE
+                showToast("Проблемы с загрузкой данных")
             }
         }
     }
 
     private suspend fun saveBreedAndUpdateHistory(breed: CatBreed) {
         try {
-            // Сохраняем породу в базу
             breedHistoryViewModel.saveBreedToDatabase(breed)
-
-            // Даем время на сохранение в базу
             kotlinx.coroutines.delay(100)
-
-            // Обновляем время просмотра
             breedHistoryViewModel.updateBreedViewTime(breed.id)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -116,7 +129,13 @@ class BreedDetailFragment : Fragment() {
     private fun loadBreedImages(breedId: String) {
         lifecycleScope.launch {
             try {
-                val imagesFromApi: List<CatImage> = RetrofitInstance.api.getBreedImages(breedId, limit = 8)
+                val imagesFromApi = try {
+                    RetrofitInstance.api.getBreedImages(breedId, limit = 8)
+                } catch (e: Exception) {
+                    Log.e("BreedDetail", "Failed to load breed images: ${e.message}")
+                    // Возвращаем пустой список при ошибке
+                    emptyList<CatImage>()
+                }
 
                 if (imagesFromApi.isNotEmpty()) {
                     adapter.submitList(imagesFromApi)
@@ -125,13 +144,14 @@ class BreedDetailFragment : Fragment() {
                 } else {
                     binding.textImagesTitle.visibility = View.GONE
                     binding.recyclerViewBreedImages.visibility = View.GONE
+                    binding.textBreedDetail.append("\n\n📷 Изображения для этой породы не найдены или временно недоступны")
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 binding.textBreedDetail.append("\n\n❌ Не удалось загрузить изображения")
                 binding.textImagesTitle.visibility = View.GONE
                 binding.recyclerViewBreedImages.visibility = View.GONE
             } finally {
-                // ВСЕГДА СКРЫВАЕМ ПРОГРЕСС-БАР ПОСЛЕ ЗАГРУЗКИ ИЗОБРАЖЕНИЙ
                 binding.progressBar.visibility = View.GONE
             }
         }
@@ -140,32 +160,27 @@ class BreedDetailFragment : Fragment() {
     private fun displayBreedInfo(breed: CatBreed) {
         val stringBuilder = StringBuilder()
 
-        // Русское название породы
         val russianName = RussianTranslator.translateBreedName(breed.name)
         stringBuilder.appendLine("🐱 $russianName")
         stringBuilder.appendLine()
 
-        // Русский темперамент
         breed.temperament?.let { temperament ->
             val russianTemperament = RussianTranslator.translateTemperament(temperament)
             stringBuilder.appendLine("🎯 Темперамент: $russianTemperament")
             stringBuilder.appendLine()
         }
 
-        // Русское происхождение
         breed.origin?.let { origin ->
             val russianOrigin = RussianTranslator.translateOrigin(origin)
             stringBuilder.appendLine("🌍 Происхождение: $russianOrigin")
             stringBuilder.appendLine()
         }
 
-        // Продолжительность жизни
         breed.lifeSpan?.let {
             stringBuilder.appendLine("⏳ Продолжительность жизни: $it лет")
             stringBuilder.appendLine()
         }
 
-        // Характеристики
         breed.intelligence?.let {
             stringBuilder.appendLine("💡 Интеллект: ${getStars(it)}")
         }
@@ -180,7 +195,6 @@ class BreedDetailFragment : Fragment() {
 
         binding.textBreedDetail.text = stringBuilder.toString()
 
-        // Добавляем кликабельную ссылку на Wikipedia отдельно
         breed.wikipediaUrl?.let { url ->
             val linkTextView = TextView(requireContext()).apply {
                 text = "🔗 Подробнее на Wikipedia"
@@ -190,11 +204,9 @@ class BreedDetailFragment : Fragment() {
                 setOnClickListener {
                     openWikipedia(url)
                 }
-                // Добавляем отступы
                 setPadding(0, 16, 0, 0)
             }
 
-            // Добавляем ссылку в layout
             (binding.root as? LinearLayout)?.addView(linkTextView)
         }
     }
@@ -204,12 +216,7 @@ class BreedDetailFragment : Fragment() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
         } catch (e: Exception) {
-            // Если браузер не найден, показываем Toast
-            android.widget.Toast.makeText(
-                requireContext(),
-                "Не удалось открыть ссылку",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            showToast("Не удалось открыть ссылку")
         }
     }
 
@@ -219,8 +226,18 @@ class BreedDetailFragment : Fragment() {
         return "$filledStars$emptyStars ($rating/5)"
     }
 
+    private fun showError(message: String) {
+        binding.textBreedDetail.text = message
+        binding.progressBar.visibility = View.GONE
+    }
+
+    private fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding?.recyclerViewBreedImages?.adapter = null
         _binding = null
     }
 }

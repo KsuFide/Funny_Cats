@@ -1,6 +1,7 @@
 package com.example.funny_cats.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -16,6 +17,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MemoryDebug", "MainActivity created")
+
+        fun onDestroy() {
+            super.onDestroy()
+            Log.d("MemoryDebug", "MainActivity destroyed")
+        }
+
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -28,32 +36,34 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        //  очищаем стек при каждом переходе
         binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.homeFragment -> {
-                    navController.navigate(R.id.homeFragment)
-                    true
+            try {
+                when (item.itemId) {
+                    R.id.homeFragment -> {
+                        navController.navigate(R.id.homeFragment)
+                        true
+                    }
+                    R.id.breedsFragment -> {
+                        navController.navigate(R.id.breedsFragment)
+                        true
+                    }
+                    R.id.favoritesFragment -> {
+                        navController.navigate(R.id.favoritesFragment)
+                        true
+                    }
+                    R.id.historyFragment -> {
+                        navController.navigate(R.id.historyFragment)
+                        true
+                    }
+                    R.id.settingsFragment -> {
+                        navController.navigate(R.id.settingsFragment)
+                        true
+                    }
+                    else -> false
                 }
-                R.id.breedsFragment -> {
-                    // ПЕРЕЗАПУСКАЕМ фрагмент каждый раз
-                    navController.popBackStack(R.id.breedsFragment, true)
-                    navController.navigate(R.id.breedsFragment)
-                    true
-                }
-                R.id.favoritesFragment -> {
-                    navController.navigate(R.id.favoritesFragment)
-                    true
-                }
-                R.id.historyFragment -> {
-                    navController.navigate(R.id.historyFragment)
-                    true
-                }
-                R.id.settingsFragment -> {
-                    navController.navigate(R.id.settingsFragment)
-                    true
-                }
-                else -> false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
             }
         }
     }

@@ -12,12 +12,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentBreedsBinding
+import com.example.funny_cats.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class BreedsFragment : Fragment() {
+class BreedsFragment : BaseFragment() {
 
     private var _binding: FragmentBreedsBinding? = null
     private val binding get() = _binding!!

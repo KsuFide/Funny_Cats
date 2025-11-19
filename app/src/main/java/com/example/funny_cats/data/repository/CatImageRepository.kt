@@ -31,6 +31,7 @@ class CatImageRepository @Inject constructor(
         ).flow
     }
 
+
     suspend fun refreshRandomImages(limit: Int = 10) {
         try {
             val imagesFromApi = RetrofitInstance.api.getRandomCats(limit)

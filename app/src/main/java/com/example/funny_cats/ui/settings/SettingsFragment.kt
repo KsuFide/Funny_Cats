@@ -11,13 +11,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentSettingsBinding
+import com.example.funny_cats.ui.BaseFragment
 import com.example.funny_cats.util.ThemeHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SettingsFragment : Fragment() {
+class SettingsFragment : BaseFragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
@@ -207,6 +208,7 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding?.recyclerViewSettings?.adapter = null
         _binding = null
     }
 }
