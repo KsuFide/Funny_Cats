@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentHistoryBinding
+import com.example.funny_cats.ui.BaseFragment
 import com.example.funny_cats.ui.breeds.BreedsAdapter
 import com.example.funny_cats.ui.home.HomePagingAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,7 +20,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class HistoryFragment : Fragment() {
+class HistoryFragment : BaseFragment() {
 
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
@@ -47,12 +48,10 @@ class HistoryFragment : Fragment() {
         setupSwipeRefresh()
         setupClearHistoryButton()
 
-        // По умолчанию показываем все
         showAllHistory()
     }
 
     private fun setupAdapters() {
-        // Адаптер для объединенной истории
         combinedAdapter = CombinedHistoryAdapter(
             onBreedClick = { breed ->
                 val bundle = Bundle().apply {
@@ -72,7 +71,6 @@ class HistoryFragment : Fragment() {
             }
         )
 
-        // Адаптер для пород
         breedAdapter = BreedsAdapter { breed ->
             val bundle = Bundle().apply {
                 putString("breedId", breed.id)
@@ -80,7 +78,6 @@ class HistoryFragment : Fragment() {
             findNavController().navigate(R.id.breedDetailFragment, bundle)
         }
 
-        // Адаптер для изображений
         imageAdapter = HomePagingAdapter()
         imageAdapter.onImageClick = { catImage ->
             val bundle = Bundle().apply {
@@ -114,64 +111,88 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showAllHistory() {
-        updateTabSelection(binding.tabAll)
-        binding.recyclerViewHistory.adapter = combinedAdapter
+        if (!isAdded || isDetached) return
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.combinedHistory.collect { historyItems ->
-                combinedAdapter.submitList(historyItems)
-                updateEmptyState(historyItems.isEmpty(), "всех элементов")
+        try {
+            updateTabSelection(binding.tabAll)
+            binding.recyclerViewHistory.adapter = combinedAdapter
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    viewModel.combinedHistory.collect { historyItems ->
+                        if (isAdded) {
+                            combinedAdapter.submitList(historyItems)
+                            updateEmptyState(historyItems.isEmpty(), "всех элементов")
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    if (isAdded) {
+                        updateEmptyState(true, "всех элементов")
+                    }
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun showBreedHistory() {
+        if (!isAdded || isDetached) return
+
         updateTabSelection(binding.tabBreeds)
         binding.recyclerViewHistory.adapter = breedAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.viewedBreedsPaging.collectLatest { pagingData ->
-                breedAdapter.submitData(pagingData)
+                if (isAdded) {
+                    breedAdapter.submitData(pagingData)
+                }
             }
         }
 
-        // Обновляем состояние пустого списка для пород
         viewLifecycleOwner.lifecycleScope.launch {
             breedAdapter.loadStateFlow.collect { loadState ->
-                val isEmpty = loadState.refresh is androidx.paging.LoadState.NotLoading &&
-                        breedAdapter.itemCount == 0
-                updateEmptyState(isEmpty, "пород")
+                if (isAdded) {
+                    val isEmpty = loadState.refresh is androidx.paging.LoadState.NotLoading &&
+                            breedAdapter.itemCount == 0
+                    updateEmptyState(isEmpty, "пород")
+                }
             }
         }
     }
 
     private fun showImageHistory() {
+        if (!isAdded || isDetached) return
+
         updateTabSelection(binding.tabImages)
         binding.recyclerViewHistory.adapter = imageAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.viewedImagesPaging.collectLatest { pagingData ->
-                imageAdapter.submitData(pagingData)
+                if (isAdded) {
+                    imageAdapter.submitData(pagingData)
+                }
             }
         }
 
-        // Обновляем состояние пустого списка для изображений
         viewLifecycleOwner.lifecycleScope.launch {
             imageAdapter.loadStateFlow.collect { loadState ->
-                val isEmpty = loadState.refresh is androidx.paging.LoadState.NotLoading &&
-                        imageAdapter.itemCount == 0
-                updateEmptyState(isEmpty, "изображений")
+                if (isAdded) {
+                    val isEmpty = loadState.refresh is androidx.paging.LoadState.NotLoading &&
+                            imageAdapter.itemCount == 0
+                    updateEmptyState(isEmpty, "изображений")
+                }
             }
         }
     }
 
     private fun updateTabSelection(selectedTab: View) {
-        // Сбрасываем все табы
+        if (!isAdded) return
+
         binding.tabAll.isSelected = false
         binding.tabBreeds.isSelected = false
         binding.tabImages.isSelected = false
-
-        // Выделяем выбранный таб
         selectedTab.isSelected = true
     }
 
@@ -180,29 +201,40 @@ class HistoryFragment : Fragment() {
     }
 
     private fun updateEmptyState(isEmpty: Boolean, type: String) {
-        if (isEmpty) {
-            binding.textEmpty.visibility = View.VISIBLE
-            binding.textEmpty.text = "История просмотров $type пуста\n\n📸 Смотрите котиков, и они появятся здесь!"
-            binding.recyclerViewHistory.visibility = View.GONE
-            binding.buttonClearHistory.visibility = View.GONE
-        } else {
-            binding.textEmpty.visibility = View.GONE
-            binding.recyclerViewHistory.visibility = View.VISIBLE
-            binding.buttonClearHistory.visibility = View.VISIBLE
+        if (!isAdded || isDetached) {
+            return
         }
 
-        binding.swipeRefresh.isRefreshing = false
+        try {
+            if (isEmpty) {
+                binding.textEmpty.visibility = View.VISIBLE
+                binding.textEmpty.text = "История просмотров $type пуста\n\n📸 Смотрите котиков, и они появятся здесь!"
+                binding.recyclerViewHistory.visibility = View.GONE
+                binding.buttonClearHistory.visibility = View.GONE
+            } else {
+                binding.textEmpty.visibility = View.GONE
+                binding.recyclerViewHistory.visibility = View.VISIBLE
+                binding.buttonClearHistory.visibility = View.VISIBLE
+            }
+
+            binding.swipeRefresh.isRefreshing = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupSwipeRefresh() {
         binding.swipeRefresh.setOnRefreshListener {
+            if (!isAdded) return@setOnRefreshListener
+
             when {
                 binding.tabAll.isSelected -> {
-                    // Для объединенной истории просто обновляем данные
                     viewLifecycleOwner.lifecycleScope.launch {
                         viewModel.combinedHistory.collect { historyItems ->
-                            combinedAdapter.submitList(historyItems)
-                            binding.swipeRefresh.isRefreshing = false
+                            if (isAdded) {
+                                combinedAdapter.submitList(historyItems)
+                                binding.swipeRefresh.isRefreshing = false
+                            }
                         }
                     }
                 }
@@ -219,6 +251,8 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showClearHistoryConfirmation() {
+        if (!isAdded) return
+
         val message = when {
             binding.tabAll.isSelected -> "Вы уверены, что хотите очистить всю историю просмотров?"
             binding.tabBreeds.isSelected -> "Вы уверены, что хотите очистить историю просмотров пород?"
@@ -237,14 +271,14 @@ class HistoryFragment : Fragment() {
                         binding.tabImages.isSelected -> viewModel.clearImageHistory()
                     }
 
-                    // Обновляем адаптеры
-                    when {
-                        binding.tabAll.isSelected -> showAllHistory()
-                        binding.tabBreeds.isSelected -> breedAdapter.refresh()
-                        binding.tabImages.isSelected -> imageAdapter.refresh()
+                    if (isAdded) {
+                        when {
+                            binding.tabAll.isSelected -> showAllHistory()
+                            binding.tabBreeds.isSelected -> breedAdapter.refresh()
+                            binding.tabImages.isSelected -> imageAdapter.refresh()
+                        }
+                        showToast("История очищена")
                     }
-
-                    showToast("История очищена")
                 }
                 dialog.dismiss()
             }
@@ -253,12 +287,14 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
+        if (!isAdded) return
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
         super.onResume()
-        // Обновляем списки при каждом открытии экрана
+        if (!isAdded) return
+
         when {
             binding.tabAll.isSelected -> showAllHistory()
             binding.tabBreeds.isSelected -> breedAdapter.refresh()
@@ -268,6 +304,18 @@ class HistoryFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
+        // Очищаем адаптеры
+        _binding?.recyclerViewHistory?.adapter = null
+
+        // Очищаем ресурсы адаптеров
+        if (::combinedAdapter.isInitialized) {
+            combinedAdapter.clearResources()
+        }
+        if (::imageAdapter.isInitialized) {
+            imageAdapter.clearCache()
+        }
+
         _binding = null
     }
 }

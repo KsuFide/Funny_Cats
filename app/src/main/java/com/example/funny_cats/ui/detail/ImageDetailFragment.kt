@@ -16,12 +16,13 @@ import com.bumptech.glide.Glide
 import com.example.funny_cats.R
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.databinding.FragmentImageDetailBinding
+import com.example.funny_cats.ui.BaseFragment
 import com.example.funny_cats.ui.home.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ImageDetailFragment : Fragment() {
+class ImageDetailFragment : BaseFragment() {
 
     private var _binding: FragmentImageDetailBinding? = null
     private val binding get() = _binding!!
@@ -42,78 +43,130 @@ class ImageDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val imageUrl = arguments?.getString("image_url") ?: ""
-        val imageId = arguments?.getString("image_id") ?: ""
+        try {
+            val imageUrl = arguments?.getString("image_url") ?: ""
+            val imageId = arguments?.getString("image_id") ?: ""
 
-        // Проверяем, открыто ли из деталей породы
-        isFromBreedDetail = arguments?.getString("breed_id") != null
+            if (imageUrl.isEmpty() || imageId.isEmpty()) {
+                showError("Неверные данные изображения")
+                return
+            }
 
-        currentImage = CatImage(
-            id = imageId,
-            url = imageUrl,
-            width = 0,
-            height = 0,
-            isInFavorites = false
-        )
+            // Проверяем, открыто ли из деталей породы
+            isFromBreedDetail = arguments?.getString("breed_id") != null
 
-        setupToolbar()
-        loadImage()
-        setupButtons()
+            currentImage = CatImage(
+                id = imageId,
+                url = imageUrl,
+                width = 0,
+                height = 0,
+                isInFavorites = false
+            )
 
-        // Загружаем состояние избранного только если НЕ из деталей породы
-        if (!isFromBreedDetail) {
-            loadFavoriteState()
-        } else {
-            // Если из деталей породы - скрываем кнопку избранного
-            binding.buttonFavorite.visibility = View.GONE
+            // ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ПРИ ОТКРЫТИИ ДЕТАЛЕЙ
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    viewModel.updateViewTime(currentImage.id)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            setupToolbar()
+            loadImage()
+            setupButtons()
+
+            // Загружаем состояние избранного только если НЕ из деталей породы
+            if (!isFromBreedDetail) {
+                loadFavoriteState()
+            } else {
+                // Если из деталей породы - скрываем кнопку избранного
+                binding.buttonFavorite.visibility = View.GONE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showError("Ошибка загрузки деталей изображения")
         }
     }
 
     private fun setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
+        try {
+            binding.toolbar.setNavigationOnClickListener {
+                requireActivity().onBackPressed()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun loadImage() {
-        Glide.with(this)
-            .load(currentImage.url)
-            .into(binding.imageViewDetail)
+        try {
+            Glide.with(this)
+                .load(currentImage.url)
+                .placeholder(R.drawable.ic_cat_placeholder)
+                .error(R.drawable.ic_cat_placeholder)
+                .into(binding.imageViewDetail)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            binding.imageViewDetail.setImageResource(R.drawable.ic_cat_placeholder)
+        }
     }
 
     private fun loadFavoriteState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val imageFromDb = viewModel.getImageById(currentImage.id)
-            isFavorite = imageFromDb?.isInFavorites ?: false
-            updateFavoriteButton()
+            try {
+                val imageFromDb = viewModel.getImageById(currentImage.id)
+                isFavorite = imageFromDb?.isInFavorites ?: false
+                updateFavoriteButton()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     private fun setupButtons() {
         binding.buttonFavorite.setOnClickListener {
-            isFavorite = !isFavorite
-            viewModel.toggleImageFavorite(currentImage.id, isFavorite)
-            updateFavoriteButton()
+            try {
+                isFavorite = !isFavorite
+                viewModel.toggleImageFavorite(currentImage.id, isFavorite)
+                updateFavoriteButton()
 
-            val message = if (isFavorite) "Добавлено в избранное! ❤️" else "Удалено из избранного"
-            showToast(message)
+                val message = if (isFavorite) "Добавлено в избранное! ❤️" else "Удалено из избранного"
+                showToast(message)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         binding.buttonDownload.setOnClickListener {
-            downloadImage(currentImage.url)
+            try {
+                downloadImage(currentImage.url)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast("Ошибка скачивания")
+            }
         }
 
         binding.buttonShare.setOnClickListener {
-            shareImage(currentImage.url)
+            try {
+                shareImage(currentImage.url)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast("Ошибка при попытке поделиться")
+            }
         }
     }
 
     private fun updateFavoriteButton() {
-        // Если кнопка скрыта, ничего не делаем
-        if (binding.buttonFavorite.visibility == View.GONE) return
+        try {
+            // Если кнопка скрыта, ничего не делаем
+            if (binding.buttonFavorite.visibility == View.GONE) return
 
-        val icon = if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border
-        binding.buttonFavorite.setImageResource(icon)
+            val icon = if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border
+            binding.buttonFavorite.setImageResource(icon)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun downloadImage(imageUrl: String) {
@@ -155,7 +208,20 @@ class ImageDetailFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
-        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        try {
+            android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun showError(message: String) {
+        try {
+            binding.imageViewDetail.setImageResource(R.drawable.ic_cat_placeholder)
+            showToast(message)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroyView() {

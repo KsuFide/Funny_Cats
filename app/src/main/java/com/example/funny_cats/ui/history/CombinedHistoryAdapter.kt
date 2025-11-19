@@ -28,7 +28,6 @@ class CombinedHistoryAdapter(
         private const val TYPE_BREED = 0
         private const val TYPE_IMAGE = 1
 
-        // Переносим DiffCallback внутрь companion object
         object DiffCallback : DiffUtil.ItemCallback<CombinedHistoryItem>() {
             override fun areItemsTheSame(oldItem: CombinedHistoryItem, newItem: CombinedHistoryItem): Boolean {
                 return when {
@@ -72,17 +71,47 @@ class CombinedHistoryAdapter(
         }
     }
 
+    // Очищаем ресурсы при переиспользовании ViewHolder
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        super.onViewRecycled(holder)
+        when (holder) {
+            is ImageViewHolder -> holder.clearImage()
+            is BreedViewHolder -> holder.clearImage()
+        }
+    }
+
+    // Очищаем все ресурсы адаптера
+    fun clearResources() {
+        // Очищаем все изображения Glide
+        for (i in 0 until itemCount) {
+            when (val item = getItem(i)) {
+                is CombinedHistoryItem.ImageItem -> {
+                    // Можно добавить логику очистки если нужно
+                }
+                is CombinedHistoryItem.BreedItem -> {
+                    // Можно добавить логику очистки если нужно
+                }
+            }
+        }
+    }
+
     inner class BreedViewHolder(private val binding: ItemBreedBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(breed: CatBreedEntity, viewedAt: Long) {
             with(binding) {
-                // Загрузка изображения
-                Glide.with(imageViewBreed.context)
-                    .load(breed.imageId?.let { "https://cdn2.thecatapi.com/images/$it.jpg" })
-                    .placeholder(R.drawable.ic_cat_placeholder)
-                    .error(R.drawable.ic_cat_placeholder)
-                    .into(imageViewBreed)
+                // Загрузка изображения с обработкой ошибок
+                try {
+                    Glide.with(imageViewBreed.context)
+                        .load(breed.imageId?.let { "https://cdn2.thecatapi.com/images/$it.jpg" })
+                        .placeholder(R.drawable.ic_cat_placeholder)
+                        .error(R.drawable.ic_cat_placeholder)
+                        .centerCrop()
+                        .into(imageViewBreed)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    imageViewBreed.setImageResource(R.drawable.ic_cat_placeholder)
+                }
 
                 // Русское название породы
                 textViewBreedName.text = RussianTranslator.translateBreedName(breed.name)
@@ -98,8 +127,20 @@ class CombinedHistoryAdapter(
 
                 // Обработчик клика
                 root.setOnClickListener {
-                    onBreedClick(breed)
+                    try {
+                        onBreedClick(breed)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
+            }
+        }
+
+        fun clearImage() {
+            try {
+                Glide.with(binding.root).clear(binding.imageViewBreed)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -108,48 +149,102 @@ class CombinedHistoryAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(image: CatImage, viewedAt: Long) {
-            // Загрузка изображения
-            Glide.with(binding.root)
-                .load(image.url)
-                .centerCrop()
-                .into(binding.imageView)
+            try {
+                // Загрузка изображения с обработкой ошибок
+                Glide.with(binding.root)
+                    .load(image.url)
+                    .placeholder(R.drawable.ic_cat_placeholder)
+                    .error(R.drawable.ic_cat_placeholder)
+                    .centerCrop()
+                    .into(binding.imageView)
 
-            // Обновляем иконку избранного
-            updateFavoriteIcon(image.isInFavorites)
+                // Обновляем иконку избранного
+                updateFavoriteIcon(image.isInFavorites)
 
-            // Обработчик клика по изображению
-            binding.imageView.setOnClickListener {
-                onImageClick(image)
+                // Обработчик клика по изображению
+                binding.imageView.setOnClickListener {
+                    try {
+                        onImageClick(image)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                // Обработчик клика по кнопке избранного
+                binding.favoriteButton.setOnClickListener {
+                    try {
+                        val newFavoriteState = !image.isInFavorites
+                        onFavoriteClick(image.id, newFavoriteState)
+                        updateFavoriteIcon(newFavoriteState)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                // Добавляем обработчик долгого нажатия
+                binding.imageView.setOnLongClickListener {
+                    try {
+                        showToast("Просмотрено: ${getTimeAgo(viewedAt)}")
+                        true
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        true
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                binding.imageView.setImageResource(R.drawable.ic_cat_placeholder)
             }
+        }
 
-            // Обработчик клика по кнопке избранного
-            binding.favoriteButton.setOnClickListener {
-                val newFavoriteState = !image.isInFavorites
-                onFavoriteClick(image.id, newFavoriteState)
-                updateFavoriteIcon(newFavoriteState)
+        fun clearImage() {
+            try {
+                Glide.with(binding.root).clear(binding.imageView)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
         private fun updateFavoriteIcon(isFavorite: Boolean) {
-            val icon = if (isFavorite) {
-                R.drawable.ic_favorite_filled
-            } else {
-                R.drawable.ic_favorite_border
+            try {
+                val icon = if (isFavorite) {
+                    R.drawable.ic_favorite_filled
+                } else {
+                    R.drawable.ic_favorite_border
+                }
+                binding.favoriteButton.setImageResource(icon)
+
+                binding.favoriteButton.contentDescription =
+                    if (isFavorite) "Удалить из избранного" else "Добавить в избранное"
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            binding.favoriteButton.setImageResource(icon)
+        }
+
+        private fun showToast(message: String) {
+            try {
+                android.widget.Toast.makeText(binding.root.context, message, android.widget.Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     private fun getTimeAgo(timestamp: Long): String {
-        val now = System.currentTimeMillis()
-        val diff = now - timestamp
+        return try {
+            val now = System.currentTimeMillis()
+            val diff = now - timestamp
 
-        return when {
-            diff < 60000 -> "только что"
-            diff < 3600000 -> "${diff / 60000} мин назад"
-            diff < 86400000 -> "${diff / 3600000} ч назад"
-            diff < 604800000 -> "${diff / 86400000} дн назад"
-            else -> "${diff / 604800000} нед назад"
+            when {
+                diff < 60000 -> "только что"
+                diff < 3600000 -> "${diff / 60000} мин назад"
+                diff < 86400000 -> "${diff / 3600000} ч назад"
+                diff < 604800000 -> "${diff / 86400000} дн назад"
+                else -> "${diff / 604800000} нед назад"
+            }
+        } catch (e: Exception) {
+            "недавно"
         }
     }
 }

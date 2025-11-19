@@ -1,6 +1,7 @@
 package com.example.funny_cats.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,12 +13,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentHomeBinding
+import com.example.funny_cats.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class HomeFragment : Fragment() {
+class HomeFragment : BaseFragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -50,7 +52,6 @@ class HomeFragment : Fragment() {
         adapter = HomePagingAdapter()
 
         adapter.onImageClick = { catImage ->
-            // ТЕПЕРЬ ОБНОВЛЯЕМ ВРЕМЯ ПРОСМОТРА ТОЛЬКО ПРИ КЛИКЕ (переходе в детали)
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.updateViewTime(catImage.id)
             }
@@ -78,14 +79,20 @@ class HomeFragment : Fragment() {
 
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerView.adapter = adapter
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    // Можно добавить логику очистки невидимых изображений
+                }
+            }
+        })
     }
 
-
-    // Наблюдатель за изменениями избранного
     private fun setupFavoriteUpdatesObserver() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.favoriteUpdates.collect { (imageId, isFavorite) ->
-                // Обновляем конкретный элемент в адаптере
                 adapter.updateFavoriteState(imageId, isFavorite)
             }
         }
@@ -98,7 +105,7 @@ class HomeFragment : Fragment() {
             .setPositiveButton("Удалить") { dialog, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.toggleImageFavorite(catImage.id, false)
-                    showToast("Удалено из избранного")
+                    showToast("Удалено из избранное")
                 }
                 dialog.dismiss()
             }
@@ -129,7 +136,10 @@ class HomeFragment : Fragment() {
                     }
                     is androidx.paging.LoadState.Error -> {
                         val errorState = loadState.refresh as androidx.paging.LoadState.Error
-                        binding.textHome.text = "😿 Не удалось загрузить котиков: ${errorState.error.message}"
+                        Log.e("HomeFragment", "Ошибка загрузки: ${errorState.error}")
+
+                        // Показываем понятное сообщение об ошибке
+                        binding.textHome.text = "😿 Проблемы с загрузкой котиков\n\nПопробуйте позже или проверьте интернет"
                         binding.textHome.visibility = View.VISIBLE
                         binding.recyclerView.visibility = View.GONE
                     }
@@ -139,14 +149,24 @@ class HomeFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
-        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        try {
+            android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Очищаем binding для предотвращения утечек памяти
-        _binding = null
-        // Очищаем кэш адаптера
-        adapter.clearCache()
+        Log.d("HomeFragment", "onDestroyView called")
+
+        try {
+            _binding?.recyclerView?.adapter = null
+            adapter.clearCache()
+            _binding = null
+            Log.d("HomeFragment", "Binding cleared successfully")
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Error clearing binding", e)
+        }
     }
 }

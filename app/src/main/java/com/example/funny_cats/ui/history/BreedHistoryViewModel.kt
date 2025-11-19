@@ -61,4 +61,9 @@ class BreedHistoryViewModel @Inject constructor(
             breedRepository.saveOrUpdateBreed(breed)
         }
     }
+
+    // Получаем породу по ID из базы данных
+    suspend fun getBreedById(breedId: String): CatBreedEntity? {
+        return breedRepository.getBreedById(breedId)
+    }
 }

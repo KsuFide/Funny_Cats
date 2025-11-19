@@ -11,13 +11,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentFavoritesBinding
+import com.example.funny_cats.ui.BaseFragment
 import com.example.funny_cats.ui.home.HomePagingAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class FavoritesFragment : Fragment() {
+class FavoritesFragment : BaseFragment() {
 
     private var _binding: FragmentFavoritesBinding? = null
     private val binding get() = _binding!!
@@ -138,8 +139,7 @@ class FavoritesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Очищаем кэш адаптера для избежания утечек памяти
-        adapter.clearCache()
+        _binding?.recyclerViewFavorites?.adapter = null
         _binding = null
     }
 }
