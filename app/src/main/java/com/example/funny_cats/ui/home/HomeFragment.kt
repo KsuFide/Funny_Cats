@@ -1,7 +1,6 @@
 package com.example.funny_cats.ui.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.funny_cats.R
 import com.example.funny_cats.databinding.FragmentHomeBinding
 import com.example.funny_cats.ui.BaseFragment
+import com.example.funny_cats.util.Logger
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -38,20 +38,24 @@ class HomeFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        Logger.d("HomeFragment onViewCreated")
         setupRecyclerView()
         setupPagingObservers()
         setupFavoriteUpdatesObserver()
 
         binding.textHome.text = "🐱 Загружаем котиков..."
         binding.swipeRefreshLayout.setOnRefreshListener {
+            Logger.d("Manual refresh triggered")
             adapter.refresh()
         }
     }
 
     private fun setupRecyclerView() {
         adapter = HomePagingAdapter()
+        Logger.d("Setting up RecyclerView with adapter")
 
         adapter.onImageClick = { catImage ->
+            Logger.d("Image clicked: ${catImage.id}")
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.updateViewTime(catImage.id)
             }
@@ -64,12 +68,14 @@ class HomeFragment : BaseFragment() {
         }
 
         adapter.onFavoriteClick = { catImage, isFavorite ->
+            Logger.d("Favorite clicked for image: ${catImage.id}, isFavorite: $isFavorite")
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.toggleImageFavorite(catImage.id, isFavorite)
             }
         }
 
         adapter.onImageLongClick = { catImage ->
+            Logger.d("Image long clicked: ${catImage.id}")
             if (catImage.isInFavorites) {
                 showDeleteConfirmationDialog(catImage)
             } else {
@@ -84,7 +90,7 @@ class HomeFragment : BaseFragment() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    // Можно добавить логику очистки невидимых изображений
+                    Logger.v("RecyclerView scrolling stopped")
                 }
             }
         })
@@ -93,12 +99,14 @@ class HomeFragment : BaseFragment() {
     private fun setupFavoriteUpdatesObserver() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.favoriteUpdates.collect { (imageId, isFavorite) ->
+                Logger.d("Favorite update received: $imageId -> $isFavorite")
                 adapter.updateFavoriteState(imageId, isFavorite)
             }
         }
     }
 
     private fun showDeleteConfirmationDialog(catImage: com.example.funny_cats.data.local.model.CatImage) {
+        Logger.d("Showing delete confirmation dialog for image: ${catImage.id}")
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Удалить из избранного")
             .setMessage("Вы уверены, что хотите удалить этого котика из избранного?")
@@ -116,6 +124,7 @@ class HomeFragment : BaseFragment() {
     private fun setupPagingObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.catsPagingFlow.collectLatest { pagingData ->
+                Logger.d("New paging data received: ${pagingData.toString().take(50)}...")
                 adapter.submitData(pagingData)
             }
         }
@@ -126,19 +135,20 @@ class HomeFragment : BaseFragment() {
 
                 when (loadState.refresh) {
                     is androidx.paging.LoadState.Loading -> {
+                        Logger.d("Loading state: Loading")
                         binding.textHome.text = "🐱 Загружаем котиков..."
                         binding.textHome.visibility = View.VISIBLE
                         binding.recyclerView.visibility = View.GONE
                     }
                     is androidx.paging.LoadState.NotLoading -> {
+                        Logger.d("Loading state: NotLoading, item count: ${adapter.itemCount}")
                         binding.textHome.visibility = View.GONE
                         binding.recyclerView.visibility = View.VISIBLE
                     }
                     is androidx.paging.LoadState.Error -> {
                         val errorState = loadState.refresh as androidx.paging.LoadState.Error
-                        Log.e("HomeFragment", "Ошибка загрузки: ${errorState.error}")
+                        Logger.e("Loading state: Error - ${errorState.error.message}", errorState.error)
 
-                        // Показываем понятное сообщение об ошибке
                         binding.textHome.text = "😿 Проблемы с загрузкой котиков\n\nПопробуйте позже или проверьте интернет"
                         binding.textHome.visibility = View.VISIBLE
                         binding.recyclerView.visibility = View.GONE
@@ -151,22 +161,23 @@ class HomeFragment : BaseFragment() {
     private fun showToast(message: String) {
         try {
             android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+            Logger.d("Toast shown: $message")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.e("Failed to show toast: ${e.message}", e)
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.d("HomeFragment", "onDestroyView called")
+        Logger.d("HomeFragment onDestroyView")
 
         try {
             _binding?.recyclerView?.adapter = null
             adapter.clearCache()
             _binding = null
-            Log.d("HomeFragment", "Binding cleared successfully")
+            Logger.d("HomeFragment binding cleared successfully")
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Error clearing binding", e)
+            Logger.e("Error clearing HomeFragment binding: ${e.message}", e)
         }
     }
 }

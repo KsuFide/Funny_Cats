@@ -1,21 +1,50 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Конфигурация ProGuard для нашего приложения
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Сохраняем классы, которые используются в манифесте
+-keep class com.example.funny_cats.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Сохраняем классы с аннотациями
+-keep @androidx.room.Entity class * { *; }
+-keep class * extends androidx.room.RoomDatabase { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Hilt
+-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+-keep @javax.inject.Inject class * { *; }
+
+# Retrofit
+-keep class com.example.funny_cats.data.api.** { *; }
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# Glide
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep class * extends com.bumptekch.glide.module.AppGlideModule {
+    *;
+}
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+    **[] $VALUES;
+    public *;
+}
+
+# Kotlin
+-keep class kotlin.Metadata { *; }
+
+# WorkManager
+-keep class androidx.work.impl.model.WorkSpec { *; }
+
+# Navigation
+-keep class androidx.navigation.** { *; }
+
+# Сохраняем ViewBinding
+-keep class * implements androidx.viewbinding.ViewBinding {
+    public static * inflate(android.view.LayoutInflater);
+}
+
+# Не обфусцируем имена методов, используемых в XML
+-keepclassmembers class * {
+    public void on*(**);
+}
+
+# Сохраняем классы, которые могут использоваться через рефлексию
+-keep class com.google.gson.** { *; }

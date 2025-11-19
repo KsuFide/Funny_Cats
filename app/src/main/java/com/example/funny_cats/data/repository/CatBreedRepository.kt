@@ -7,6 +7,7 @@ import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.CatBreed
 import com.example.funny_cats.data.local.model.CatBreedEntity
+import com.example.funny_cats.util.Logger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -15,6 +16,7 @@ class CatBreedRepository(private val database: CatDatabase) {
     private val dao = database.catBreedDao()
 
     fun getBreedsPaging(): Flow<PagingData<CatBreedEntity>> {
+        Logger.d("Getting breeds paging flow")
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -27,8 +29,8 @@ class CatBreedRepository(private val database: CatDatabase) {
         ).flow
     }
 
-
     fun searchBreedsPaging(query: String): Flow<PagingData<CatBreedEntity>> {
+        Logger.d("Searching breeds with query: $query")
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -43,16 +45,15 @@ class CatBreedRepository(private val database: CatDatabase) {
 
     suspend fun refreshBreeds() {
         try {
+            Logger.d("Refreshing breeds from API")
             val breedsFromApi = RetrofitInstance.api.getAllBreeds()
 
-            // Получаем текущие породы из базы чтобы сохранить историю просмотров
             val existingBreeds = dao.getAllBreeds().first()
             val existingBreedsMap = existingBreeds.associateBy { it.id }
 
             val entities = breedsFromApi.map { apiBreed ->
                 val existingBreed = existingBreedsMap[apiBreed.id]
 
-                // Сохраняем данные из существующей породы если есть
                 if (existingBreed != null) {
                     existingBreed.copy(
                         name = apiBreed.name,
@@ -65,40 +66,50 @@ class CatBreedRepository(private val database: CatDatabase) {
                         intelligence = apiBreed.intelligence,
                         dogFriendly = apiBreed.dogFriendly,
                         adaptability = apiBreed.adaptability
-                        // lastViewed сохраняется из existingBreed
                     )
                 } else {
-                    // Новая порода
                     apiBreed.toEntity()
                 }
             }
 
             dao.insertAll(entities)
+            Logger.d("Successfully refreshed ${entities.size} breeds")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.e("Failed to refresh breeds: ${e.message}", e)
         }
     }
 
     suspend fun clearCache() {
-        dao.clearAll()
+        try {
+            dao.clearAll()
+            Logger.d("Successfully cleared breed cache")
+        } catch (e: Exception) {
+            Logger.e("Failed to clear breed cache: ${e.message}", e)
+        }
     }
 
-    // Обновляем время просмотра породы
     suspend fun updateBreedViewTime(breedId: String) {
-        dao.updateViewTime(breedId, System.currentTimeMillis())
+        try {
+            dao.updateViewTime(breedId, System.currentTimeMillis())
+            Logger.d("Updated view time for breed: $breedId")
+        } catch (e: Exception) {
+            Logger.e("Failed to update view time for breed $breedId: ${e.message}", e)
+        }
     }
 
-    // Получаем породу по ID
     suspend fun getBreedById(breedId: String): CatBreedEntity? {
-        return dao.getBreedById(breedId)
+        return try {
+            dao.getBreedById(breedId)
+        } catch (e: Exception) {
+            Logger.e("Failed to get breed by id $breedId: ${e.message}", e)
+            null
+        }
     }
 
-    // Сохраняем породу в базу (если ее нет) или обновляем существующую
     suspend fun saveOrUpdateBreed(breed: CatBreed) {
         val existingBreed = dao.getBreedById(breed.id)
 
         if (existingBreed != null) {
-            // Обновляем существующую породу, но сохраняем lastViewed
             val updatedBreed = existingBreed.copy(
                 name = breed.name,
                 origin = breed.origin,
@@ -110,17 +121,16 @@ class CatBreedRepository(private val database: CatDatabase) {
                 intelligence = breed.intelligence,
                 dogFriendly = breed.dogFriendly,
                 adaptability = breed.adaptability
-                // lastViewed сохраняется из existingBreed
             )
             dao.updateBreed(updatedBreed)
+            Logger.d("Updated existing breed: ${breed.name}")
         } else {
-            // Новая порода
             dao.insertAll(listOf(breed.toEntity()))
+            Logger.d("Saved new breed: ${breed.name}")
         }
     }
 }
 
-// Конвертация без избранного
 private fun CatBreed.toEntity(): CatBreedEntity {
     return CatBreedEntity(
         id = this.id,
@@ -138,7 +148,6 @@ private fun CatBreed.toEntity(): CatBreedEntity {
     )
 }
 
-// Расширение для конвертации Entity в CatBreed (для деталей породы)
 fun CatBreedEntity.toCatBreed(): CatBreed {
     return CatBreed(
         id = this.id,

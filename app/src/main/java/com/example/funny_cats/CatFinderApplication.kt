@@ -3,7 +3,7 @@ package com.example.funny_cats
 import android.app.Application
 import android.os.StrictMode
 import com.example.funny_cats.util.ThemeHelper
-import com.squareup.leakcanary.core.BuildConfig
+import com.example.funny_cats.util.Logger
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -19,6 +19,9 @@ class CatFinderApplication : Application() {
         // Включаем StrictMode только в debug сборке
         if (BuildConfig.DEBUG) {
             setupStrictMode()
+            Logger.d("Application started in DEBUG mode")
+        } else {
+            Logger.d("Application started in RELEASE mode")
         }
     }
 
@@ -26,20 +29,20 @@ class CatFinderApplication : Application() {
         // Детектируем проблемы в UI потоке
         StrictMode.setThreadPolicy(
             StrictMode.ThreadPolicy.Builder()
-                .detectAll() // Детектим все проблемы
-                .penaltyLog() // Логируем нарушения
-                .penaltyFlashScreen() // Мигаем экраном при нарушениях (очень заметно!)
+                .detectAll()
+                .penaltyLog()
+                .penaltyFlashScreen()
                 .build()
         )
 
         // Детектируем проблемы с памятью
         StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
-                .detectLeakedSqlLiteObjects() // Утечки БД
-                .detectLeakedClosableObjects() // Утечки ресурсов
-                .detectActivityLeaks() // Утечки Activity
-                .detectLeakedRegistrationObjects() // Утечки BroadcastReceiver
-                .penaltyLog() // Логируем нарушения
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .detectActivityLeaks()
+                .detectLeakedRegistrationObjects()
+                .penaltyLog()
                 .build()
         )
     }
