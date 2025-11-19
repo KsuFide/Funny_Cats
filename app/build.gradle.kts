@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -22,14 +24,21 @@ android {
         buildConfigField("String", "BUILD_TYPE", "\"debug\"")
     }
 
-    // Настройка signing configs
+// Настройка signing configs
     signingConfigs {
         create("release") {
-            // Эти значения будут установлены в переменных окружения или в local.properties
             storeFile = file("${project.rootDir}/keystore/funny_cats_keystore.jks")
-            storePassword = System.getenv("STORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+
+            // Читаем пароли из local.properties
+            val properties = Properties()
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                properties.load(localPropertiesFile.inputStream())
+            }
+
+            storePassword = properties.getProperty("storePassword") ?: "123456"
+            keyAlias = properties.getProperty("keyAlias") ?: "funny_cats_key"
+            keyPassword = properties.getProperty("keyPassword") ?: "123456"
         }
     }
 
@@ -57,20 +66,20 @@ android {
         }
     }
 
-    // Настройка product flavors (опционально)
-    flavorDimensions += "version"
-    productFlavors {
-        create("free") {
-            dimension = "version"
-            applicationIdSuffix = ".free"
-            versionNameSuffix = "-free"
-        }
-        create("paid") {
-            dimension = "version"
-            applicationIdSuffix = ".paid"
-            versionNameSuffix = "-paid"
-        }
-    }
+//    // Настройка product flavors (опционально)
+//    flavorDimensions += "version"
+//    productFlavors {
+//        create("free") {
+//            dimension = "version"
+//            applicationIdSuffix = ".free"
+//            versionNameSuffix = "-free"
+//        }
+//        create("paid") {
+//            dimension = "version"
+//            applicationIdSuffix = ".paid"
+//            versionNameSuffix = "-paid"
+//        }
+//    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

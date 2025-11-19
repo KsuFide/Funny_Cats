@@ -92,7 +92,7 @@ class ImageDetailFragment : BaseFragment() {
     private fun setupToolbar() {
         try {
             binding.toolbar.setNavigationOnClickListener {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         } catch (e: Exception) {
             e.printStackTrace()
