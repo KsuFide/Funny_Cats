@@ -5,7 +5,7 @@
 
 ## 📥 Установка
 
-[📲 **Скачать FunnyCats-v1.0.apk**](releases/FunnyCats-v1.0.apk)
+[📲 **Скачать FunnyCats-v1.0.apk**](https://github.com/KsuFide/Funny_Cats/raw/develop/releases/FunnyCats-v1.0.apk)
 
 ### Инструкция по установке:
 1. **Скачайте** APK файл по ссылке выше
