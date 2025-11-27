@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,17 +19,67 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Добавляем конфигурацию для разных сборок
+        buildConfigField("String", "BUILD_TYPE", "\"debug\"")
+    }
+
+// Настройка signing configs
+    signingConfigs {
+        create("release") {
+            storeFile = file("${project.rootDir}/keystore/funny_cats_keystore.jks")
+
+            // Читаем пароли из local.properties
+            val properties = Properties()
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                properties.load(localPropertiesFile.inputStream())
+            }
+
+            storePassword = properties.getProperty("storePassword") ?: "123456"
+            keyAlias = properties.getProperty("keyAlias") ?: "funny_cats_key"
+            keyPassword = properties.getProperty("keyPassword") ?: "123456"
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+
+            // Отключаем логи в релизной сборке
+            buildConfigField("String", "BUILD_TYPE", "\"release\"")
+            isDebuggable = false
+        }
+        debug {
+            isMinifyEnabled = false
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+
+            buildConfigField("String", "BUILD_TYPE", "\"debug\"")
         }
     }
+
+//    // Настройка product flavors (опционально)
+//    flavorDimensions += "version"
+//    productFlavors {
+//        create("free") {
+//            dimension = "version"
+//            applicationIdSuffix = ".free"
+//            versionNameSuffix = "-free"
+//        }
+//        create("paid") {
+//            dimension = "version"
+//            applicationIdSuffix = ".paid"
+//            versionNameSuffix = "-paid"
+//        }
+//    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -40,6 +92,18 @@ android {
 
     viewBinding {
         enable = true
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    // Включение сжатия для release сборки
+    buildTypes {
+        getByName("release") {
+            isShrinkResources = true
+            isMinifyEnabled = true
+        }
     }
 }
 
@@ -86,7 +150,6 @@ dependencies {
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
@@ -101,14 +164,14 @@ dependencies {
     // Material Design для улучшенных UI компонентов
     implementation("com.google.android.material:material:1.10.0")
 
-    // ТОЛЬКО САМЫЕ БАЗОВЫЕ ТЕСТЫ
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
     // Инструменты профилирования (ТОЛЬКО ДЛЯ DEBUG)
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
     debugImplementation("androidx.profileinstaller:profileinstaller:1.3.1")
+
+    // Тесты
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
 
 kapt {

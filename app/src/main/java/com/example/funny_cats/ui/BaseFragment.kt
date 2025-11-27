@@ -1,9 +1,9 @@
 package com.example.funny_cats.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
-import com.squareup.leakcanary.core.BuildConfig
+import com.example.funny_cats.BuildConfig
+import com.example.funny_cats.util.Logger
 
 open class BaseFragment : Fragment() {
 
@@ -45,7 +45,7 @@ open class BaseFragment : Fragment() {
             val usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
             val maxMemory = runtime.maxMemory() / (1024 * 1024)
 
-            Log.d(tag, "${this::class.java.simpleName}.$method - Memory: ${usedMemory}MB / ${maxMemory}MB")
+            Logger.d("${this::class.java.simpleName}.$method - Memory: ${usedMemory}MB / ${maxMemory}MB")
         }
     }
 }

@@ -8,7 +8,7 @@ import com.example.funny_cats.data.local.model.CatImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import android.util.Log
+import com.example.funny_cats.util.Logger
 
 class RandomCatsPagingSource(
     private val database: CatDatabase
@@ -19,15 +19,15 @@ class RandomCatsPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, CatImage> {
         return try {
             val page = params.key ?: 0
-            Log.d("PagingDebug", "Loading page $page with size ${params.loadSize}")
+            Logger.d("Loading page $page with size ${params.loadSize}")
 
             val response = try {
                 RetrofitInstance.api.getRandomCats(limit = params.loadSize)
             } catch (e: Exception) {
-                Log.e("PagingDebug", "API call failed: ${e.message}")
+                Logger.e("API call failed: ${e.message}")
                 // Если API не работает, возвращаем данные из базы
                 val cachedImages = withContext(Dispatchers.IO) {
-                    imageDao.getAllImages().first() // Получаем данные из Flow
+                    imageDao.getAllImages().first()
                 }
                 return LoadResult.Page(
                     data = cachedImages.take(params.loadSize),
@@ -36,7 +36,7 @@ class RandomCatsPagingSource(
                 )
             }
 
-            Log.d("PagingDebug", "API response size: ${response.size}")
+            Logger.d("API response size: ${response.size}")
 
             // Сохраняем изображения в базу данных с lastUpdated = 0
             val imagesWithTimestamp = response.map {
@@ -58,7 +58,7 @@ class RandomCatsPagingSource(
                 nextKey = page + 1
             )
         } catch (e: Exception) {
-            Log.e("PagingDebug", "Load error: ${e.message}", e)
+            Logger.e("Load error: ${e.message}", e)
             LoadResult.Error(e)
         }
     }

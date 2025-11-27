@@ -8,6 +8,7 @@ import com.example.funny_cats.data.api.RetrofitInstance
 import com.example.funny_cats.data.local.CatDatabase
 import com.example.funny_cats.data.local.model.CatImage
 import com.example.funny_cats.data.paging.RandomCatsPagingSource
+import com.example.funny_cats.util.Logger
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -17,8 +18,8 @@ class CatImageRepository @Inject constructor(
 
     private val dao = database.catImageDao()
 
-    // Пагинация для всех изображений - ИСПОЛЬЗУЕМ PAGING SOURCE КОТОРЫЙ РАБОТАЕТ С БАЗОЙ
     fun getImagesPaging(): Flow<PagingData<CatImage>> {
+        Logger.d("Getting images paging flow")
         return Pager(
             config = PagingConfig(
                 pageSize = 10,
@@ -31,21 +32,21 @@ class CatImageRepository @Inject constructor(
         ).flow
     }
 
-
     suspend fun refreshRandomImages(limit: Int = 10) {
         try {
+            Logger.d("Refreshing random images, limit: $limit")
             val imagesFromApi = RetrofitInstance.api.getRandomCats(limit)
             val imagesWithTimestamp = imagesFromApi.map { it.copy(lastUpdated = System.currentTimeMillis()) }
             dao.insertAll(imagesWithTimestamp)
-            Log.d("CatImageRepository", "Successfully refreshed $limit random images")
+            Logger.d("Successfully refreshed $limit random images")
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to refresh random images: ${e.message}", e)
-            // Не падаем, просто логируем ошибку
+            Logger.e("Failed to refresh random images: ${e.message}", e)
         }
     }
 
     suspend fun loadBreedImages(breedId: String, limit: Int = 8): List<CatImage> {
         return try {
+            Logger.d("Loading breed images for breed: $breedId, limit: $limit")
             val imagesFromApi = RetrofitInstance.api.getBreedImages(breedId, limit)
 
             val imagesWithFavoriteStatus = mutableListOf<CatImage>()
@@ -60,21 +61,21 @@ class CatImageRepository @Inject constructor(
                 imagesWithFavoriteStatus.add(imageToSave)
             }
 
-            Log.d("CatImageRepository", "Successfully loaded ${imagesWithFavoriteStatus.size} breed images")
+            Logger.d("Successfully loaded ${imagesWithFavoriteStatus.size} breed images")
             imagesWithFavoriteStatus
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to load breed images for breed $breedId: ${e.message}", e)
-            emptyList() // Возвращаем пустой список вместо падения
+            Logger.e("Failed to load breed images for breed $breedId: ${e.message}", e)
+            emptyList()
         }
     }
 
     suspend fun toggleFavorite(imageId: String, isFavorite: Boolean) {
         try {
             dao.updateFavoriteStatus(imageId, isFavorite)
-            Log.d("CatImageRepository", "Updated favorite status for image $imageId to $isFavorite")
+            Logger.d("Updated favorite status for image $imageId to $isFavorite")
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to toggle favorite for image $imageId: ${e.message}", e)
-            throw e // Пробрасываем исключение, так как это критическая операция
+            Logger.e("Failed to toggle favorite for image $imageId: ${e.message}", e)
+            throw e
         }
     }
 
@@ -82,7 +83,7 @@ class CatImageRepository @Inject constructor(
         return try {
             dao.getImageById(imageId)
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to get image by id $imageId: ${e.message}", e)
+            Logger.e("Failed to get image by id $imageId: ${e.message}", e)
             null
         }
     }
@@ -91,16 +92,16 @@ class CatImageRepository @Inject constructor(
         try {
             dao.updateViewTime(imageId, System.currentTimeMillis())
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to update view time for image $imageId: ${e.message}", e)
+            Logger.e("Failed to update view time for image $imageId: ${e.message}", e)
         }
     }
 
     suspend fun clearCache() {
         try {
             dao.clearAll()
-            Log.d("CatImageRepository", "Successfully cleared image cache")
+            Logger.d("Successfully cleared image cache")
         } catch (e: Exception) {
-            Log.e("CatImageRepository", "Failed to clear cache: ${e.message}", e)
+            Logger.e("Failed to clear cache: ${e.message}", e)
         }
     }
 }

@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Keystore files
+keystore/
+*.jks
+*.keystore
+
+# Local configuration
+local.properties
+
+# Android Studio
+.idea/
