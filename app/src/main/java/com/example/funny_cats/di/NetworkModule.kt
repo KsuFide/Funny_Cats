@@ -1,7 +1,6 @@
 package com.example.funny_cats.di
 
 import com.example.funny_cats.data.api.CatApiService
-import com.squareup.leakcanary.core.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,8 +31,7 @@ object NetworkModule {
                 chain.proceed(request)
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                else HttpLoggingInterceptor.Level.BASIC
+                level = HttpLoggingInterceptor.Level.BODY
             })
             .build()
     }
