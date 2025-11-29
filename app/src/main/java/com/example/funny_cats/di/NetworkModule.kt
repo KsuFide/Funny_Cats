@@ -1,7 +1,7 @@
 package com.example.funny_cats.di
 
-import com.example.funny_cats.BuildConfig
 import com.example.funny_cats.data.api.CatApiService
+import com.squareup.leakcanary.core.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +26,7 @@ object NetworkModule {
             .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .addHeader("x-api-key", "demo-key") // Используем demo ключ
+                    .addHeader("x-api-key", "live_gDpMBwQrePsIpkCMkMEKdduryFg7STnvSejuhkLAzn3IdOoCfx1tFUMoLRxamklO")
                     .addHeader("Accept", "application/json")
                     .build()
                 chain.proceed(request)
@@ -43,6 +43,7 @@ object NetworkModule {
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://api.thecatapi.com/")
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
