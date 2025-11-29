@@ -44,8 +44,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -54,14 +54,13 @@ android {
 
             // Отключаем логи в релизной сборке
             buildConfigField("String", "BUILD_TYPE", "\"release\"")
-            isDebuggable = false
+            isDebuggable = true
         }
         debug {
             isMinifyEnabled = false
             isDebuggable = true
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-
             buildConfigField("String", "BUILD_TYPE", "\"debug\"")
         }
     }
@@ -97,14 +96,6 @@ android {
     buildFeatures {
         buildConfig = true
     }
-
-    // Включение сжатия для release сборки
-    buildTypes {
-        getByName("release") {
-            isShrinkResources = true
-            isMinifyEnabled = true
-        }
-    }
 }
 
 dependencies {
@@ -113,6 +104,16 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
+
+    // Оптимизированная версия Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
+
+    // Кэширование OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Быстрый парсинг JSON
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
 
     // Material Design
     implementation("com.google.android.material:material:1.10.0")
